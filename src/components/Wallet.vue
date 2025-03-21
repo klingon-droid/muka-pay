@@ -38,7 +38,7 @@
         </div>
 
         <div class="w-full h-full grid grid-cols-2 ">
-            <div class="flex justify-center items-center flex-col shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)]">
+            <div @click="isSendDialogOpen = true" class="flex justify-center items-center flex-col shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)] cursor-pointer hover:bg-gray-50">
                 <div>
                     <iconify-icon class="text-5xl text-blue-400" icon="pixelarticons:arrow-up"></iconify-icon>
                 </div>
@@ -60,10 +60,28 @@
                 <div>
                     <iconify-icon class="text-5xl text-gray-400" icon="pixelarticons:article-multiple"></iconify-icon>
                 </div>
-                <p class="text-2xl mt-2">history</p>
+                <p class="text-2xl font-bold mt-2">history</p>
             </div>
         </div>
 
-
+        <!-- Use the imported SendDialog component -->
+        <SendDialog 
+            :is-open="isSendDialogOpen" 
+            @close="isSendDialogOpen = false"
+            @send="handleSendPayment"
+        />
     </div>
 </template>
+
+<script setup>
+import { ref } from 'vue'
+import SendDialog from './SendDialog.vue'
+
+const isSendDialogOpen = ref(false)
+
+const handleSendPayment = (payment) => {
+    // Implement payment logic here
+    console.log('Sending payment:', payment)
+    isSendDialogOpen.value = false
+}
+</script>
