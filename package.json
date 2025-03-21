@@ -9,6 +9,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^12.3.0",
     "@astrojs/vue": "^5.0.7",
     "@headlessui/vue": "^1.7.23",
     "@nanostores/vue": "^0.11.0",

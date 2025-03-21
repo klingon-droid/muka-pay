@@ -44,9 +44,9 @@
 
                 <div class="flex justify-end items-center gap-2">
 
-                    <button class="bg-white text-black text-3xl w-12 h-12 flex justify-center items-center space-x-1 rounded-full">
+                    <!-- <button class="bg-white text-black text-3xl w-12 h-12 flex justify-center items-center space-x-1 rounded-full">
                         <iconify-icon icon="mdi:hamburger-menu"></iconify-icon>
-                    </button>
+                    </button> -->
 
                     <button class="bg-red-500 text-white text-2xl w-12 h-12 flex justify-center items-center space-x-1 rounded-full">
                         <iconify-icon icon="mdi:logout"></iconify-icon>
@@ -64,13 +64,13 @@
                 </div>
                 <p class="text-2xl font-bold mt-2 text-blue-700">send</p>
             </div>
-            <div class="flex justify-center items-center flex-col shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)]">
+            <div @click="gotoReceive()" class="flex justify-center items-center flex-col shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)] cursor-pointer hover:bg-gray-50">
                 <div>
                     <iconify-icon class="text-5xl text-green-400" icon="pixelarticons:arrow-down"></iconify-icon>
                 </div>
                 <p class="text-2xl font-bold mt-2 text-green-700">receive</p>
             </div>
-            <div class="flex justify-center items-center flex-col shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)]">
+            <div @click="gotoDeposit()" class="flex justify-center items-center flex-col shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)]">
                 <div>
                     <iconify-icon class="text-5xl text-yellow-400" icon="pixelarticons:plus"></iconify-icon>
                 </div>
@@ -90,6 +90,8 @@
             @close="isSendDialogOpen = false"
             @send="handleSendPayment"
         />
+
+        
     </div>
 </template>
 
@@ -104,6 +106,8 @@ const isSendDialogOpen = ref(false)
 const usdcBalance = ref(0);
 // const currentUsername = useStore(username)
 const currentUsername = 'bukamuka'
+import ReceiveDialog from './ReceiveDialog.vue'
+
 
 const walletAccount = ref(null);
 const isConnected = ref(false);
@@ -145,7 +149,7 @@ const connectWallet = async (connector) => {
 const getBalance = async () => {
 
 
-    const response = await fetch(`/api/balance/${currentUsername}`);
+    const response = await fetch(`${window.location.origin}/api/balance/${currentUsername}`);
     const data = await response.json();
     console.log('balance data:', data);
     usdcBalance.value = data.balance / 1e6;
@@ -177,5 +181,13 @@ const disconnectWallet = () => {
 
 
 
+
+const gotoReceive = () => {
+    window.location.href = '/receive'
+}
+
+const gotoDeposit = () => {
+    window.location.href = `/deposit?username=${currentUsername}`
+}
 
 </script>
