@@ -172,7 +172,7 @@ const drawFrozenPattern = () => {
     gradient.addColorStop(1, 'rgba(80, 80, 80, 0.9)');
     
     ctx.value.strokeStyle = gradient;
-    ctx.value.lineWidth = 24;
+    ctx.value.lineWidth = 12;
     ctx.value.lineCap = 'round';
     ctx.value.lineJoin = 'round';
     
@@ -217,7 +217,7 @@ const drawPattern = (currentPoint = null) => {
     gradient.addColorStop(1, 'rgba(80, 80, 80, 0.9)');
     
     ctx.value.strokeStyle = gradient;
-    ctx.value.lineWidth = 24;
+    ctx.value.lineWidth = 12;
     ctx.value.lineCap = 'round';
     ctx.value.lineJoin = 'round';
     
