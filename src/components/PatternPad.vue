@@ -33,6 +33,10 @@ const props = defineProps({
     minLength: {
         type: Number,
         default: 4
+    },
+    isConfirmStep: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -44,9 +48,12 @@ const ctx = ref(null);
 const isDrawing = ref(false);
 const selectedDots = ref([]);
 const dots = ref([]);
+const patternCache = ref(null); // Add cache for frozen pattern
 
 // Initialize dot positions
 const initDots = () => {
+    if (!canvas.value) return;
+    
     const rect = canvas.value.getBoundingClientRect();
     const gap = rect.width / 3;
     const offset = gap / 2;
@@ -65,14 +72,18 @@ const initDots = () => {
 
 // Canvas setup
 onMounted(() => {
-    canvas.value.width = canvas.value.offsetWidth;
-    canvas.value.height = canvas.value.offsetHeight;
-    ctx.value = canvas.value.getContext('2d');
-    initDots();
+    if (canvas.value) {
+        canvas.value.width = canvas.value.offsetWidth;
+        canvas.value.height = canvas.value.offsetHeight;
+        ctx.value = canvas.value.getContext('2d');
+        initDots();
+    }
 });
 
 // Drawing functions
 const startDrawing = (e) => {
+    if (!canvas.value) return;
+    
     isDrawing.value = true;
     const point = getPoint(e);
     const dot = findClosestDot(point);
@@ -83,7 +94,7 @@ const startDrawing = (e) => {
 };
 
 const draw = (e) => {
-    if (!isDrawing.value) return;
+    if (!isDrawing.value || !canvas.value) return;
     
     const point = getPoint(e);
     const dot = findClosestDot(point);
@@ -104,13 +115,12 @@ const endDrawing = () => {
     isDrawing.value = false;
     
     if (selectedDots.value.length >= props.minLength) {
+        // Cache the final pattern
+        cacheCurrentPattern();
+        // Redraw the clean pattern
+        drawFrozenPattern();
         emit('pattern-complete', selectedDots.value.join(''));
     }
-    
-    setTimeout(() => {
-        selectedDots.value = [];
-        drawPattern();
-    }, 300);
 };
 
 // Touch event handlers
@@ -131,6 +141,8 @@ const handleTouchEnd = (e) => {
 
 // Helper functions
 const getPoint = (e) => {
+    if (!canvas.value) return { x: 0, y: 0 };
+    
     const rect = canvas.value.getBoundingClientRect();
     return {
         x: e.clientX - rect.left,
@@ -149,7 +161,61 @@ const findClosestDot = (point) => {
     });
 };
 
+// New function to cache the pattern
+const cacheCurrentPattern = () => {
+    if (!canvas.value || !ctx.value) return;
+    patternCache.value = selectedDots.value.slice(); // Create a copy of selected dots
+};
+
+// New function to draw the frozen pattern
+const drawFrozenPattern = () => {
+    if (!canvas.value || !ctx.value) return;
+    
+    ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
+    
+    if (!patternCache.value || patternCache.value.length === 0) return;
+    
+    ctx.value.beginPath();
+    
+    // Create gradient
+    const gradient = ctx.value.createLinearGradient(0, 0, canvas.value.width, canvas.value.height);
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+    gradient.addColorStop(0.5, 'rgba(40, 40, 40, 0.8)');
+    gradient.addColorStop(1, 'rgba(80, 80, 80, 0.9)');
+    
+    ctx.value.strokeStyle = gradient;
+    ctx.value.lineWidth = 24;
+    ctx.value.lineCap = 'round';
+    ctx.value.lineJoin = 'round';
+    
+    ctx.value.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.value.shadowBlur = 10;
+    ctx.value.shadowOffsetX = 2;
+    ctx.value.shadowOffsetY = 4;
+    
+    // Draw only the lines between dots from the cache
+    patternCache.value.forEach((dotIndex, i) => {
+        const dot = dots.value[dotIndex];
+        if (i === 0) {
+            ctx.value.moveTo(dot.x, dot.y);
+        } else {
+            ctx.value.lineTo(dot.x, dot.y);
+        }
+    });
+    
+    ctx.value.stroke();
+};
+
 const drawPattern = (currentPoint = null) => {
+    if (!canvas.value || !ctx.value) return;
+    
+    // Only show frozen pattern when in confirm step AND not actively drawing
+    if ((props.isConfirmStep && !isDrawing.value) || (!isDrawing.value && patternCache.value)) {
+        drawFrozenPattern();
+        return;
+    }
+    
+    // Clear the canvas for active drawing
     ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
     
     if (selectedDots.value.length === 0) return;
@@ -158,22 +224,21 @@ const drawPattern = (currentPoint = null) => {
     
     // Create gradient
     const gradient = ctx.value.createLinearGradient(0, 0, canvas.value.width, canvas.value.height);
-    gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');      // Start with solid black
-    gradient.addColorStop(0.5, 'rgba(40, 40, 40, 0.8)'); // Mid-point slightly lighter
-    gradient.addColorStop(1, 'rgba(80, 80, 80, 0.9)');   // End with dark gray
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+    gradient.addColorStop(0.5, 'rgba(40, 40, 40, 0.8)');
+    gradient.addColorStop(1, 'rgba(80, 80, 80, 0.9)');
     
     ctx.value.strokeStyle = gradient;
     ctx.value.lineWidth = 24;
     ctx.value.lineCap = 'round';
     ctx.value.lineJoin = 'round';
     
-    // Add shadow effect
     ctx.value.shadowColor = 'rgba(0, 0, 0, 0.3)';
     ctx.value.shadowBlur = 10;
     ctx.value.shadowOffsetX = 2;
     ctx.value.shadowOffsetY = 4;
     
-    // Draw lines between selected dots
+    // Draw current pattern
     selectedDots.value.forEach((dotIndex, i) => {
         const dot = dots.value[dotIndex];
         if (i === 0) {
@@ -183,17 +248,32 @@ const drawPattern = (currentPoint = null) => {
         }
     });
     
-    // Draw line to current point if drawing
+    // Draw line to current point only during active drawing
     if (currentPoint && isDrawing.value) {
         const lastDot = dots.value[selectedDots.value[selectedDots.value.length - 1]];
-        ctx.value.lineTo(currentPoint.x, currentPoint.y);
+        if (lastDot) {
+            ctx.value.lineTo(currentPoint.x, currentPoint.y);
+        }
     }
     
     ctx.value.stroke();
 };
 
+// Clear pattern method
+const clearPattern = () => {
+    if (!canvas.value || !ctx.value) return;
+    selectedDots.value = [];
+    patternCache.value = null;
+    drawPattern();
+};
+
 // Watch for changes in selected dots
 watch(selectedDots, () => {
     drawPattern();
+});
+
+// Expose methods
+defineExpose({
+    clearPattern
 });
 </script> 
