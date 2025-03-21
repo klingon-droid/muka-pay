@@ -556,7 +556,7 @@
                     }
                 })
                 const ctx = canvasEl.getContext('2d')
-                ctx.clearRect(0, 0, canvasEl.width, canvasEl.height)
+                // ctx.clearRect(0, 0, canvasEl.width, canvasEl.height)
 
                 // Update face detection status
                 isFaceDetected.value = result.face && result.face.length > 0
@@ -576,50 +576,50 @@
                     const faceSizeRatio = Math.max(faceWidth / videoWidth, faceHeight / videoHeight)
                     isFaceLargeEnough.value = faceSizeRatio >= FACE_SIZE_THRESHOLD
                     
-                    // Draw bounding box with enhanced visibility
-                    ctx.strokeStyle = isFaceLargeEnough.value ? '#4CAF50' : '#FFA500'
-                    ctx.lineWidth = 4
-                    ctx.strokeRect(face.box[0], face.box[1], face.box[2], face.box[3])
+                    // // Draw bounding box with enhanced visibility
+                    // ctx.strokeStyle = isFaceLargeEnough.value ? '#4CAF50' : '#FFA500'
+                    // ctx.lineWidth = 4
+                    // ctx.strokeRect(face.box[0], face.box[1], face.box[2], face.box[3])
                     
-                    // Add semi-transparent fill
-                    ctx.fillStyle = isFaceLargeEnough.value ? 
-                        'rgba(76, 175, 80, 0.1)' : 
-                        'rgba(255, 165, 0, 0.1)'
-                    ctx.fillRect(face.box[0], face.box[1], face.box[2], face.box[3])
+                    // // Add semi-transparent fill
+                    // ctx.fillStyle = isFaceLargeEnough.value ? 
+                    //     'rgba(76, 175, 80, 0.1)' : 
+                    //     'rgba(255, 165, 0, 0.1)'
+                    // ctx.fillRect(face.box[0], face.box[1], face.box[2], face.box[3])
 
-                    // Draw face mesh/landmarks
-                    if (face.mesh) {
-                        ctx.strokeStyle = '#2196F3'
-                        ctx.lineWidth = 1
-                        ctx.beginPath()
+                    // // Draw face mesh/landmarks
+                    // if (face.mesh) {
+                    //     ctx.strokeStyle = '#2196F3'
+                    //     ctx.lineWidth = 1
+                    //     ctx.beginPath()
                         
-                        // Draw face mesh lines
-                        face.mesh.forEach((point, index) => {
-                            if (index === 0) {
-                                ctx.moveTo(point[0], point[1])
-                            } else {
-                                ctx.lineTo(point[0], point[1])
-                            }
-                        })
-                        ctx.stroke()
+                    //     // Draw face mesh lines
+                    //     face.mesh.forEach((point, index) => {
+                    //         if (index === 0) {
+                    //             ctx.moveTo(point[0], point[1])
+                    //         } else {
+                    //             ctx.lineTo(point[0], point[1])
+                    //         }
+                    //     })
+                    //     ctx.stroke()
 
-                        // Draw key facial landmarks
-                        ctx.fillStyle = '#FFC107'
-                        const keyPoints = [
-                            face.mesh[33],  // nose
-                            face.mesh[133], // right eye
-                            face.mesh[362], // left eye
-                            face.mesh[152]  // mouth
-                        ]
+                    //     // Draw key facial landmarks
+                    //     ctx.fillStyle = '#FFC107'
+                    //     const keyPoints = [
+                    //         face.mesh[33],  // nose
+                    //         face.mesh[133], // right eye
+                    //         face.mesh[362], // left eye
+                    //         face.mesh[152]  // mouth
+                    //     ]
                         
-                        keyPoints.forEach(point => {
-                            if (point) {
-                                ctx.beginPath()
-                                ctx.arc(point[0], point[1], 3, 0, 2 * Math.PI)
-                                ctx.fill()
-                            }
-                        })
-                    }
+                    //     keyPoints.forEach(point => {
+                    //         if (point) {
+                    //             ctx.beginPath()
+                    //             ctx.arc(point[0], point[1], 3, 0, 2 * Math.PI)
+                    //             ctx.fill()
+                    //         }
+                    //     })
+                    // }
 
                     // If we're capturing and face is detected and large enough, process it
                     if (isCapturing.value && isFaceLargeEnough.value) {
@@ -745,8 +745,15 @@
                 // angles: capturedFrames.value.map(f => f.angle)
             };
 
+            const array = new Uint8Array(16);
+            const timestamp = Date.now().toString(36);
+            window.crypto.getRandomValues(array);
+            const uuid = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+            const id = `${timestamp}_${uuid}`;
+
             const payload = {
-                id: `${username.value}_average`,
+                // id: `${username.value}_average`,
+                id: id,
                 values: faceDescriptor.value,
                 metadata: metadata
             }
