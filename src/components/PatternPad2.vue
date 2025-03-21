@@ -29,17 +29,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 
-const props = defineProps({
-    minLength: {
-        type: Number,
-        default: 4
-    },
-    isConfirmStep: {
-        type: Boolean,
-        default: false
-    }
-});
-
 const emit = defineEmits(['pattern-complete']);
 
 // Refs
@@ -114,15 +103,12 @@ const endDrawing = () => {
     if (!isDrawing.value) return;
     isDrawing.value = false;
     
-    if (selectedDots.value.length >= props.minLength) {
-        // Cache the final pattern
-        cacheCurrentPattern();
-        // Redraw the clean pattern
-        drawFrozenPattern();
-        const pattern = selectedDots.value.join('');
-        console.log(`Pattern ${props.isConfirmStep ? 'confirmation' : 'creation'} completed:`, pattern);
-        emit('pattern-complete', pattern);
-    }
+    // Cache the final pattern
+    cacheCurrentPattern();
+    // Redraw the clean pattern
+    drawFrozenPattern();
+    const pattern = selectedDots.value.join('');
+    emit('pattern-complete', pattern);
 };
 
 // Touch event handlers
@@ -163,13 +149,13 @@ const findClosestDot = (point) => {
     });
 };
 
-// New function to cache the pattern
+// Cache the pattern
 const cacheCurrentPattern = () => {
     if (!canvas.value || !ctx.value) return;
     patternCache.value = selectedDots.value.slice(); // Create a copy of selected dots
 };
 
-// New function to draw the frozen pattern
+// Draw the frozen pattern
 const drawFrozenPattern = () => {
     if (!canvas.value || !ctx.value) return;
     
@@ -211,8 +197,8 @@ const drawFrozenPattern = () => {
 const drawPattern = (currentPoint = null) => {
     if (!canvas.value || !ctx.value) return;
     
-    // Only show frozen pattern when in confirm step AND not actively drawing
-    if ((props.isConfirmStep && !isDrawing.value) || (!isDrawing.value && patternCache.value)) {
+    // Show frozen pattern when not actively drawing
+    if (!isDrawing.value && patternCache.value) {
         drawFrozenPattern();
         return;
     }
