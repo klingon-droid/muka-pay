@@ -5,7 +5,7 @@
             
             <div class="flex justify-center items-center flex-col grow -mt-8">
                 <p class="text-yellow-700 mb-2">balance</p>
-                <p class="text-6xl font-bold mb-8">12.34</p>
+                <p class="text-6xl font-bold mb-8">{{ usdcBalance }}</p>
 
                 <div class="bg-black px-1 py-1 pr-3 rounded-full text-white">
                     <div class="flex items-center gap-2">
@@ -18,7 +18,7 @@
             <div class="absolute bottom-0 p-4 flex justify-between w-full items-center">
                 <div>
                     <p class="-mt-2 text-gray-400">username</p>
-                    <div class="text-2xl font-bold">username </div>
+                    <div class="text-2xl font-bold">{{ currentUsername }}</div>
                 </div>
                 
 
@@ -74,14 +74,52 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import SendDialog from './SendDialog.vue'
+import { username } from '../stores/user'
+import { useStore } from '@nanostores/vue'
 
 const isSendDialogOpen = ref(false)
+const usdcBalance = ref(0);
+// const currentUsername = useStore(username)
+const currentUsername = 'bukamuka'
 
 const handleSendPayment = (payment) => {
     // Implement payment logic here
     console.log('Sending payment:', payment)
     isSendDialogOpen.value = false
 }
+
+onMounted( async () => {
+    await getBalance();
+})
+
+const getBalance = async () => {
+
+
+    const response = await fetch(`/api/balance/${currentUsername}`);
+    const data = await response.json();
+    console.log('balance data:', data);
+    usdcBalance.value = data.balance / 1e6;
+
+    // await fetch(`https://mukapay-api.fly.dev/api/users/${currentUsername}/balance`, {
+    //     method: 'GET',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //         'Accept': 'application/json'
+    //     }
+    // })
+    // .then(response => response.json())
+    // .then(data => {
+    //     console.log('balance data:', data);
+    //     usdcBalance.value = data.balance / 1e6;
+    // })
+    // .catch(error => {
+    //     console.error('Error fetching balance:', error);
+    // });
+    // usdcBalance.value = 12.34;
+    // return usdcBalance.value;
+}
+
+
 </script>

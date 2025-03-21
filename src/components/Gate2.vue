@@ -303,6 +303,7 @@
 
     import { ref, watch, onMounted } from 'vue';
     import PatternPad2 from './PatternPad2.vue';
+    import { setUsername } from '../stores/user';
 
     const hasCameraPermission = ref(false);
     const isFaceDetected = ref(false);
@@ -811,6 +812,7 @@
         console.log('decryptedUsername:', decryptedUsername);
 
         if(decryptedUsername) {
+            setUsername(decryptedUsername);
             window.location.href = '/app';
         } else {
             login_step.value = 3;
