@@ -71,11 +71,7 @@
             @send="handleSendPayment"
         />
 
-        <!-- Use the imported ReceiveDialog component -->
-        <ReceiveDialog
-            :is-open="isReceiveDialogOpen"
-            @close="isReceiveDialogOpen = false"
-        />
+        
     </div>
 </template>
 
@@ -105,7 +101,7 @@ onMounted( async () => {
 const getBalance = async () => {
 
 
-    const response = await fetch(`/api/balance/${currentUsername}`);
+    const response = await fetch(`${window.location.origin}/api/balance/${currentUsername}`);
     const data = await response.json();
     console.log('balance data:', data);
     usdcBalance.value = data.balance / 1e6;

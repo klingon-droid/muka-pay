@@ -144,6 +144,10 @@ const showPaymentResult = ref(false)
 const paymentSuccess = ref(false)
 const paymentMessage = ref('')
 
+const goBack = () => {
+    window.location.href = '/app'
+}
+
 const appendNumber = (number) => {
     amount.value += number
 }
