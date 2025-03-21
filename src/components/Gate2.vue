@@ -34,11 +34,12 @@
         </div>
 
 
-        <template v-if="!hasCameraPermission">
+        <template v-if="!hasCameraPermission && !matchedEmbedding">
             <button @click="requestCameraPermission()" class="mt-12 bg-black text-white px-4 py-2 rounded-md">Enable</button>
         </template>
 
-        <template v-if="isFaceDetected&&!isSearchBusy">
+        <!-- <template v-if="isFaceDetected&&!isSearchBusy"> -->
+        <template v-if="!isSearchBusy">
 
             <template v-if="isNewUser">
     
@@ -300,7 +301,7 @@
 
 
 
-    import { ref, watch } from 'vue';
+    import { ref, watch, onMounted } from 'vue';
     import PatternPad2 from './PatternPad2.vue';
 
     const hasCameraPermission = ref(false);
@@ -331,6 +332,18 @@
     const isFlipped = ref(true);
 
     const matchedEmbedding = ref(null);
+
+    onMounted(() => {
+
+        /// get face embedding from local storage
+        const faceEmbedding = localStorage.getItem('mukapay-face');
+        if (faceEmbedding) {
+            matchedEmbedding.value = JSON.parse(faceEmbedding);
+            isNewUser.value = false;
+            login_step.value = 1;
+        }
+
+    })
 
     const requestCameraPermission = async () => {
         // hasCameraPermission.value = true;
