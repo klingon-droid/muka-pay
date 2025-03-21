@@ -1,21 +1,12 @@
 ---
+// import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-import Counter from '../components/Counter.vue';
+import App from '../components/App.vue';
+
+// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
+// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
-	<main class="min-h-screen bg-gray-100 py-12">
-		<div class="container mx-auto px-4">
-			<h1 class="text-4xl font-bold text-center text-gray-800 mb-8">
-				Astro + Vue + Tailwind CSS
-			</h1>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-				<Counter title="First Counter" initialCount={5} client:load />
-				<Counter title="Second Counter" initialCount={10} client:load />
-			</div>
-			<p class="text-center mt-12 text-gray-600">
-				Edit <code class="bg-gray-200 px-1 py-0.5 rounded">src/components/Counter.vue</code> to test hot module reloading.
-			</p>
-		</div>
-	</main>
+	<App client:only="vue" />
 </Layout>
