@@ -1,9 +1,9 @@
 <template>
     <div class="relative w-full h-full flex justify-center items-center flex-col">
 
-        <div :class="[isActive?'w-[300px] h-[300px] bg-black/0':'mb-8 w-[200px] h-[200px] bg-black ']" class="  rounded-full flex justify-center items-center duration-500">
+        <div :class="[isActive?'w-[300px] h-[300px] bg-black/0':'mb-8 w-[200px] h-[200px] bg-black', searchComplete?'-mt-[100px]':'']" class="  rounded-full flex justify-center items-center duration-500">
 
-            <div :class="[!isActive?'w-[200px] h-[200px]':' w-[300px] h-[300px] overflow-hidden','rounded-full duration-300 delay-75 absolute']">
+            <div :class="[!isActive?'w-[200px] h-[200px]':' w-[300px] h-[300px] overflow-hidden','rounded-full duration-300 delay-75 absolute', faceDetected?'scale-[0.8]':'']">
                 <video 
                     ref="videoRef" 
                 autoplay 
@@ -56,12 +56,50 @@
             </div>
         </div>
 
+        <div v-if="searchBusy" class="bg-black flex justify-center items-center px-4 py-2 rounded-full">
+            <div class="text-white font-bold">Loading...</div>
+        </div>
+
+        <div class="flex flex-col items-center justify-center space-y-12" v-if="searchComplete">
+
+            <template v-if="!hasAccount">
+
+                <div class="my-12 text-center">
+                    <div class="text-4xl font-bold mb-4">Hello New Face</div>
+                    <p class="text-lg">Let's get started!</p>
+                </div>
+    
+                <button class="bg-black text-white text-2xl px-8 py-3 rounded-full">Register New Account</button>
+    
+                <div class="fixed bottom-0 w-full bg-white p-4 py-12 text-center">
+                    <p class="text-xl font-semibold mb-2">Already have an account?</p>
+                    <p class="text-sm">Please center your face and come closer</p>
+                </div>
+
+            </template>
+
+            <template v-else>
+
+                <div class=" text-center">
+                    <div class="text-4xl font-bold mb-4">Welcome Back</div>
+                    <p class="text-lg">Draw your secret pattern to login</p>
+                </div>
+
+                <PatternPad @pattern-complete="handlePatternComplete" />
+
+                
+            </template>
+            
+
+        </div>
         
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, defineEmits } from 'vue';
+import { ref, onMounted, onUnmounted, defineEmits, watch } from 'vue';
+import { Human } from '@vladmandic/human'
+import PatternPad from './PatternPad.vue';
 
 const emit = defineEmits(['started', 'stopped', 'error']);
 
@@ -71,11 +109,44 @@ const isActive = ref(false);
 const permissionDenied = ref(false);
 const isLoading = ref(false);
 const permissionStatus = ref('checking'); // 'checking' | 'granted' | 'denied' | 'prompt'
+const faceDetected = ref(false);
+const searchBusy = ref(false);
+const searchComplete = ref(false);
+const hasAccount = ref(false);
 
 // Refs
 const videoRef = ref(null);
 const canvasRef = ref(null);
 let stream = null;
+let detectInterval = null;
+
+// Initialize Human with proper configuration
+const human = new Human({
+    backend: 'webgl',
+    modelBasePath: '/models',
+    face: {
+        enabled: true,
+        detector: {
+            enabled: true,
+            rotation: true,
+            return: true,
+            maxDetected: 1,
+            minConfidence: 0.5
+        },
+        mesh: { enabled: false },
+        embedding: { enabled: false },
+        description: { enabled: false },
+        emotion: { enabled: false },
+        iris: { enabled: false },
+        antispoof: { enabled: false },
+        liveness: { enabled: false }
+    },
+    // Disable other features for better performance
+    body: { enabled: false },
+    hand: { enabled: false },
+    object: { enabled: false },
+    gesture: { enabled: false }
+});
 
 // Methods
 const start = async () => {
@@ -97,6 +168,9 @@ const start = async () => {
         });
         await videoRef.value.play();
         
+        // Start face detection after camera is started
+        startFaceDetection();
+        
         emit('started', { stream, video: videoRef.value });
         
     } catch (error) {
@@ -111,7 +185,37 @@ const start = async () => {
     }
 };
 
+const startFaceDetection = async () => {
+    if (!videoRef.value) return;
+
+    // Initialize Human models
+    try {
+        await human.load();
+        await human.warmup();
+    } catch (error) {
+        console.error('Error initializing face detection:', error);
+        return;
+    }
+
+    detectInterval = setInterval(async () => {
+        if (videoRef.value.paused || videoRef.value.ended) return;
+        
+        try {
+            const result = await human.detect(videoRef.value);
+            // Update face detection status
+            faceDetected.value = result.face && result.face.length > 0;
+            // console.log(faceDetected.value);
+        } catch (error) {
+            console.error('Error in face detection:', error);
+        }
+    }, 100);
+};
+
 const stop = () => {
+    if (detectInterval) {
+        clearInterval(detectInterval);
+        detectInterval = null;
+    }
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
         stream = null;
@@ -124,6 +228,7 @@ const stop = () => {
         ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height);
     }
     isActive.value = false;
+    faceDetected.value = false;
     emit('stopped');
 };
 
@@ -162,6 +267,21 @@ const requestPermission = () => {
     start();
 };
 
+const handlePatternComplete = (pattern) => {
+    console.log('Pattern completed:', pattern);
+    // Here you can handle the pattern verification
+    // For example, send it to your backend for validation
+};
+
+watch(faceDetected, (newVal) => {
+    searchBusy.value = true
+    setTimeout(() => {
+        searchBusy.value = false
+        searchComplete.value = true
+        hasAccount.value = true
+    }, 1000)
+})
+
 // Canvas methods
 const getCanvas = () => canvasRef.value;
 const getContext = () => canvasRef.value?.getContext('2d');
@@ -178,7 +298,8 @@ defineExpose({
     getContext,
     getVideo,
     isStreamActive,
-    getStream
+    getStream,
+    faceDetected
 });
 
 onMounted(async () => {
