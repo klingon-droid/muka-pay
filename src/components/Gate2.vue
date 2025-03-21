@@ -44,6 +44,9 @@
     
                 <template v-if="register_step == 1">
                     <div class="grow w-full flex flex-col justify-start items-center">
+
+                        <button @click="searchAccount()" class="bg-black text-white px-8 py-4 rounded-full text-2xl">Dummy Try Again</button>
+                        
                         <div class="text-center mb-12">
                             <p class="text-4xl font-bold mb-4">Hello New Face</p>
                             <p class="text-lg">Let's get started!</p>
@@ -262,7 +265,6 @@
     })
 
     const videoRef = ref(null);
-
     let detectInterval = null;
 
     const startFaceDetection = async () => {
@@ -319,6 +321,8 @@
 
     const isActive = ref(false);
     const isFlipped = ref(true);
+
+    const matchedEmbedding = ref(null);
 
     const requestCameraPermission = async () => {
         // hasCameraPermission.value = true;
@@ -382,6 +386,8 @@
                 isNewUser.value = true;    
             } else {
                 console.log('User found, login...')
+                localStorage.setItem('mukapay-face', JSON.stringify(matchedData));
+                matchedEmbedding.value = matchedData;
                 isNewUser.value = false;
                 login_step.value = 1;
             }
@@ -518,19 +524,130 @@
         window.location.href = '/app';
     }
 
-    const handleExistingUserLogin = (pattern) => {
+    const handleExistingUserLogin = async (pattern) => {
         console.log('pattern:', pattern);
         login_step.value = 2;
 
-        setTimeout(() => {
+        const decryptedUsername = await decryptMetadata(matchedEmbedding.value.metadata.username, pattern)
+        console.log('decryptedUsername:', decryptedUsername);
 
-            // dummy for login success
-            // TODO: store user's credentials to device so next login no need to login again
+        if(decryptedUsername) {
             window.location.href = '/app';
+        } else {
+            login_step.value = 3;
+        }  
 
-            // dummy for login failed
-            // login_step.value = 3;
-        }, 1000);
+        // setTimeout(() => {
+        //     // dummy for login success
+        //     // TODO: store user's credentials to device so next login no need to login again
+        //     window.location.href = '/app';
+        //     // dummy for login failed
+        //     // login_step.value = 3;
+        // }, 1000);
+    }
+
+
+
+    
+    // Add these helper functions at the top of your script section
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    // Helper function to convert string to base64
+    function stringToBase64(str) {
+        return btoa(str);
+    }
+
+    // Helper function to convert base64 to string
+    function base64ToString(base64) {
+        return atob(base64);
+    }
+
+
+    // Function to get encryption key from password
+    async function getEncryptionKey(password) {
+        const keyMaterial = await window.crypto.subtle.importKey(
+            'raw',
+            encoder.encode(password),
+            { name: 'PBKDF2' },
+            false,
+            ['deriveBits', 'deriveKey']
+        );
+
+        return window.crypto.subtle.deriveKey(
+            {
+                name: 'PBKDF2',
+                salt: encoder.encode('your-secure-salt'),  // Use a secure salt
+                iterations: 100000,
+                hash: 'SHA-256'
+            },
+            keyMaterial,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['encrypt', 'decrypt']
+        );
+    }
+
+    // Encryption function
+    async function encryptMetadata(metadata, pin) {
+        try {
+            const encryptionKey = pin; // your-secure-encryption-key
+            const key = await getEncryptionKey(encryptionKey);
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const encodedData = encoder.encode(JSON.stringify(metadata));
+
+            const encryptedData = await window.crypto.subtle.encrypt(
+                {
+                    name: 'AES-GCM',
+                    iv: iv
+                },
+                key,
+                encodedData
+            );
+
+            // Combine IV and encrypted data
+            const encryptedArray = new Uint8Array(iv.length + encryptedData.byteLength);
+            encryptedArray.set(iv);
+            encryptedArray.set(new Uint8Array(encryptedData), iv.length);
+
+            // Convert to base64 for storage
+            return stringToBase64(String.fromCharCode.apply(null, encryptedArray));
+        } catch (error) {
+            console.error('Encryption error:', error);
+            throw error;
+        }
+    }
+
+    // Decryption function
+    async function decryptMetadata(encryptedData, pin) {
+        try {
+            const encryptionKey = pin;
+            const key = await getEncryptionKey(encryptionKey);
+
+            // Convert base64 to Uint8Array
+            const encryptedArray = new Uint8Array(
+                base64ToString(encryptedData).split('').map(c => c.charCodeAt(0))
+            );
+
+            // Extract IV and encrypted content
+            const iv = encryptedArray.slice(0, 12);
+            const content = encryptedArray.slice(12);
+
+            const decryptedData = await window.crypto.subtle.decrypt(
+                {
+                    name: 'AES-GCM',
+                    iv: iv
+                },
+                key,
+                content
+            );
+
+            return JSON.parse(decoder.decode(decryptedData));
+        } catch (error) {
+            console.error('Decryption error:', error);
+            return null;
+            // throw error;
+        }
     }
 
 </script>
