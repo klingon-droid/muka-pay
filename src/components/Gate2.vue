@@ -21,6 +21,7 @@
                         ]"
                     >
                     </video>
+                    <canvas ref="canvasRef" class="absolute inset-0 h-full w-full"></canvas>
                 </div>
                 <!-- <p>Dummy Camera Feed</p> -->
                 <!-- <p>FaceDetected? {{ isFaceDetected }}</p>
@@ -43,10 +44,7 @@
     
     
                 <template v-if="register_step == 1">
-                    <div class="grow w-full flex flex-col justify-start items-center">
-
-                        <button @click="searchAccount()" class="bg-black text-white px-8 py-4 rounded-full text-2xl">Dummy Try Again</button>
-                        
+                    <div class="grow w-full flex flex-col justify-start items-center">                        
                         <div class="text-center mb-12">
                             <p class="text-4xl font-bold mb-4">Hello New Face</p>
                             <p class="text-lg">Let's get started!</p>
@@ -57,6 +55,7 @@
                         <div class="text-center absolute bottom-12 w-full">
                             <p class="text-xl font-bold">Already have an account?</p>
                             <p class="text-sm">Please center your face and come closer</p>
+                            <button @click="searchAccount()" class="underline">Try Again</button>
                         </div>
                     </div>
                 </template>
@@ -168,6 +167,7 @@
                         <div v-if="!isNewFaceEmbeddingGenerated" class="text-center">
                             <p class="text-2xl font-bold mb-2">Hold Still</p>
                             <p>Generating your face signature</p>
+                            <p>Info: {{ captureInfo }}</p>
                         </div>
     
                         <div :class="[isNewFaceEmbeddingGenerated?'opacity-100':'opacity-0', 'text-center']">
@@ -263,11 +263,14 @@
         object: { enabled: false },
         gesture: { enabled: false }
     })
+    const FACE_SIZE_THRESHOLD = 0.5 // Face should take up at least 30% of the video width
+
 
     const videoRef = ref(null);
+    const canvasRef = ref(null)
     let detectInterval = null;
 
-    const startFaceDetection = async () => {
+    const checkFaceDetection = async () => {
         if (!videoRef.value) return;
 
         // Initialize Human models
@@ -302,6 +305,8 @@
 
     const hasCameraPermission = ref(false);
     const isFaceDetected = ref(false);
+    const isFaceLargeEnough = ref(false);
+    const faceDescriptor = ref(null);
     const isSearchBusy = ref(false);
     const isNewUser = ref(false);
     const isNewFaceEmbeddingGenerated = ref(false);
@@ -319,6 +324,9 @@
     const confirmPattern = ref('');
     const patternError = ref('');
 
+    const isCapturing = ref(false);
+    const capturedFrames = ref([]);
+    const captureInfo = ref('');
     const isActive = ref(false);
     const isFlipped = ref(true);
 
@@ -333,6 +341,7 @@
             audio: false
         });
         isActive.value = true;
+        isCapturing.value = true;
         hasCameraPermission.value = true;
         videoRef.value.srcObject = stream;
         
@@ -340,7 +349,7 @@
             videoRef.value.onloadedmetadata = resolve;
         });
         await videoRef.value.play();
-        await startFaceDetection();
+        await checkFaceDetection();
 
         // search account
         await searchAccount();
@@ -352,7 +361,7 @@
     watch(hasCameraPermission, async () => {
         if (hasCameraPermission.value) {
 
-            // startFaceDetection();
+            // checkFaceDetection();
             // setTimeout(() => {
             //     isFaceDetected.value = true;
             //     searchAccount();
@@ -511,11 +520,261 @@
         // TODO: add detect face orientation: should start when face is looking center
         if (register_step.value == 4) {
             isNewFaceEmbeddingGenerated.value = false;
-            setTimeout(() => {
-                isNewFaceEmbeddingGenerated.value = true;
-            }, 1000);
+
+            captureInfo.value = 'Detecting your face...';
+            startFaceDetection();
+
+            // setTimeout(() => {
+            //     isNewFaceEmbeddingGenerated.value = true;
+            // }, 1000);
         }
     })
+
+    const startFaceDetection = async () => {
+        if (!videoRef.value || !canvasRef.value) return
+
+        const videoEl = videoRef.value
+        const canvasEl = canvasRef.value
+        
+        // Set canvas size to match video
+        const updateCanvasSize = () => {
+            canvasEl.width = videoEl.videoWidth
+            canvasEl.height = videoEl.videoHeight
+        }
+        updateCanvasSize()
+
+        detectInterval = setInterval(async () => {
+            if (videoEl.paused || videoEl.ended) return
+            
+            try {
+                // Detect face with full configuration
+                const result = await human.detect(videoEl, {
+                    face: {
+                        detector: { enabled: true, rotation: true },
+                        mesh: { enabled: true },
+                        embedding: { enabled: true }
+                    }
+                })
+                const ctx = canvasEl.getContext('2d')
+                ctx.clearRect(0, 0, canvasEl.width, canvasEl.height)
+
+                // Update face detection status
+                isFaceDetected.value = result.face && result.face.length > 0
+
+                // Draw face box and landmarks if detected
+                if (isFaceDetected.value) {
+                    captureInfo.value = "Face detected...";
+                    const face = result.face[0]
+                    
+                    // Check if face is large enough
+                    const faceWidth = face.box[2]
+                    const faceHeight = face.box[3]
+                    const videoWidth = videoEl.videoWidth
+                    const videoHeight = videoEl.videoHeight
+                    
+                    // Calculate face size relative to video dimensions
+                    const faceSizeRatio = Math.max(faceWidth / videoWidth, faceHeight / videoHeight)
+                    isFaceLargeEnough.value = faceSizeRatio >= FACE_SIZE_THRESHOLD
+                    
+                    // Draw bounding box with enhanced visibility
+                    ctx.strokeStyle = isFaceLargeEnough.value ? '#4CAF50' : '#FFA500'
+                    ctx.lineWidth = 4
+                    ctx.strokeRect(face.box[0], face.box[1], face.box[2], face.box[3])
+                    
+                    // Add semi-transparent fill
+                    ctx.fillStyle = isFaceLargeEnough.value ? 
+                        'rgba(76, 175, 80, 0.1)' : 
+                        'rgba(255, 165, 0, 0.1)'
+                    ctx.fillRect(face.box[0], face.box[1], face.box[2], face.box[3])
+
+                    // Draw face mesh/landmarks
+                    if (face.mesh) {
+                        ctx.strokeStyle = '#2196F3'
+                        ctx.lineWidth = 1
+                        ctx.beginPath()
+                        
+                        // Draw face mesh lines
+                        face.mesh.forEach((point, index) => {
+                            if (index === 0) {
+                                ctx.moveTo(point[0], point[1])
+                            } else {
+                                ctx.lineTo(point[0], point[1])
+                            }
+                        })
+                        ctx.stroke()
+
+                        // Draw key facial landmarks
+                        ctx.fillStyle = '#FFC107'
+                        const keyPoints = [
+                            face.mesh[33],  // nose
+                            face.mesh[133], // right eye
+                            face.mesh[362], // left eye
+                            face.mesh[152]  // mouth
+                        ]
+                        
+                        keyPoints.forEach(point => {
+                            if (point) {
+                                ctx.beginPath()
+                                ctx.arc(point[0], point[1], 3, 0, 2 * Math.PI)
+                                ctx.fill()
+                            }
+                        })
+                    }
+
+                    // If we're capturing and face is detected and large enough, process it
+                    if (isCapturing.value && isFaceLargeEnough.value) {
+                        await processFaceCapture(result)
+                    }
+                } else {
+                    isFaceLargeEnough.value = false
+                    captureInfo.value = "Please come closer and center your face..."
+                }
+            } catch (error) {
+                captureInfo.value = "Error in face detection..."
+                console.error('Error in face detection:', error)
+            }
+        }, 100)
+    }
+
+    const processFaceCapture = async (result) => {
+        if (!result.face || result.face.length === 0 || !videoRef.value) return
+        
+        const face = result.face[0]
+        
+        // Only capture if we have embedding data
+        if (!face.embedding || face.embedding.length === 0) {
+            console.error('No embedding data available')
+            return
+        }
+
+        try {
+            captureInfo.value = "Capturing...";
+            // Create thumbnail
+            const thumbnailCanvas = document.createElement('canvas')
+            const size = 150
+            thumbnailCanvas.width = size
+            thumbnailCanvas.height = size
+            const ctx = thumbnailCanvas.getContext('2d')
+
+            // Calculate crop dimensions with padding
+            const box = face.box
+            const padding = 0.3 // 30% padding
+            const cropSize = Math.max(box[2], box[3]) * (1 + padding * 2)
+            const cropX = Math.max(0, box[0] + box[2]/2 - cropSize/2)
+            const cropY = Math.max(0, box[1] + box[3]/2 - cropSize/2)
+
+            // Draw the cropped region directly from the video
+            ctx.drawImage(
+                videoRef.value,
+                cropX, cropY, cropSize, cropSize,  // Source rectangle
+                0, 0, size, size                   // Destination rectangle
+            )
+
+            // Add a white background to ensure visibility
+            ctx.fillStyle = 'white'
+            ctx.globalCompositeOperation = 'destination-over'
+            ctx.fillRect(0, 0, size, size)
+            ctx.globalCompositeOperation = 'source-over'
+
+            // Create frame data
+            const frameData = {
+                angle: 'center',
+                descriptor: Array.from(face.embedding),
+                thumbnail: thumbnailCanvas.toDataURL('image/jpeg', 0.8)
+            }
+
+            // Add to captured frames
+            capturedFrames.value.push(frameData)
+
+            // If we have enough samples, finish capture
+            if (capturedFrames.value.length >= 5) {
+                finishCapture()
+            }
+        } catch (error) {
+            console.error('Error processing face capture:', error)
+        }
+    }
+
+    const finishCapture = () => {
+        isCapturing.value = false
+        captureInfo.value = 'Averaging your face...';
+
+        // Filter out any frames with invalid descriptors
+        const validFrames = capturedFrames.value.filter(frame => 
+            frame.descriptor && frame.descriptor.every(val => !isNaN(val))
+        )
+        
+        if (validFrames.length > 0) {
+            // Get the descriptor length from the first valid frame
+            const descriptorLength = validFrames[0].descriptor.length
+            const avgDescriptor = new Array(descriptorLength).fill(0)
+            
+            // Sum up all valid descriptors
+            validFrames.forEach(frame => {
+                frame.descriptor.forEach((val, i) => {
+                    avgDescriptor[i] += val / validFrames.length
+                })
+            })
+            
+            // Verify the average descriptor has valid values
+            if (avgDescriptor.every(val => !isNaN(val))) {
+                faceDescriptor.value = avgDescriptor;
+                saveToDatabase();
+                captureInfo.value = 'Face captured successfully!';
+            } else {
+                console.error('Error: Invalid average descriptor')
+                faceDescriptor.value = 'Error: Invalid face descriptor'
+            }
+        } else {
+            console.error('No valid frames to average')
+            faceDescriptor.value = 'Error: No valid face descriptors captured'
+        }
+    }
+
+    const saveToDatabase = async () => {
+        if (!username.value || !faceDescriptor.value) return;
+        
+        try {
+            const vectors = [];
+            
+            // Add the average vector with encrypted metadata
+            const metadata = {
+                username: await encryptMetadata(username.value, confirmPattern.value),
+                angle: 'average',
+                timestamp: new Date().toISOString(),
+                // angles: capturedFrames.value.map(f => f.angle)
+            };
+
+            const payload = {
+                id: `${username.value}_average`,
+                values: faceDescriptor.value,
+                metadata: metadata
+            }
+            console.log('Payload:', payload);
+
+            vectors.push(payload);
+
+            // Send to Pinecone
+            const response = await fetch('https://face4-ff60525.svc.aped-4627-b74a.pinecone.io/vectors/upsert', {
+                method: 'POST',
+                headers: {
+                    'Api-Key': 'pcsk_65jcaw_DxQsFPjgiuo5pTiYBsovpdYo7DsPALMLM5bKMzCxLgnm5rrWh8NxibVMDrCC8qG',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ vectors })
+            });
+
+            if (!response.ok) throw new Error('Failed to save to database');
+
+            username.value = '';
+        } catch (error) {
+            console.error('Error saving to database:', error);
+        } finally {
+            isNewFaceEmbeddingGenerated.value = true;
+        }
+    };
+
+
 
     const completeRegister = () => {
 
