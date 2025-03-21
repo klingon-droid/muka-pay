@@ -717,45 +717,135 @@ const toggleView = () => {
     isExpandedView.value = !isExpandedView.value
 }
 
+// Add these helper functions at the top of your script section
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
+// Helper function to convert string to base64
+function stringToBase64(str) {
+    return btoa(str);
+}
+
+// Helper function to convert base64 to string
+function base64ToString(base64) {
+    return atob(base64);
+}
+
+// Function to get encryption key from password
+async function getEncryptionKey(password) {
+    const keyMaterial = await window.crypto.subtle.importKey(
+        'raw',
+        encoder.encode(password),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveBits', 'deriveKey']
+    );
+
+    return window.crypto.subtle.deriveKey(
+        {
+            name: 'PBKDF2',
+            salt: encoder.encode('your-secure-salt'),  // Use a secure salt
+            iterations: 100000,
+            hash: 'SHA-256'
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+    );
+}
+
+// Encryption function
+async function encryptMetadata(metadata) {
+    try {
+        const encryptionKey = 'your-secure-encryption-key';
+        const key = await getEncryptionKey(encryptionKey);
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+        const encodedData = encoder.encode(JSON.stringify(metadata));
+
+        const encryptedData = await window.crypto.subtle.encrypt(
+            {
+                name: 'AES-GCM',
+                iv: iv
+            },
+            key,
+            encodedData
+        );
+
+        // Combine IV and encrypted data
+        const encryptedArray = new Uint8Array(iv.length + encryptedData.byteLength);
+        encryptedArray.set(iv);
+        encryptedArray.set(new Uint8Array(encryptedData), iv.length);
+
+        // Convert to base64 for storage
+        return stringToBase64(String.fromCharCode.apply(null, encryptedArray));
+    } catch (error) {
+        console.error('Encryption error:', error);
+        throw error;
+    }
+}
+
+// Decryption function
+async function decryptMetadata(encryptedData) {
+    try {
+        const encryptionKey = 'your-secure-encryption-key';
+        const key = await getEncryptionKey(encryptionKey);
+
+        // Convert base64 to Uint8Array
+        const encryptedArray = new Uint8Array(
+            base64ToString(encryptedData).split('').map(c => c.charCodeAt(0))
+        );
+
+        // Extract IV and encrypted content
+        const iv = encryptedArray.slice(0, 12);
+        const content = encryptedArray.slice(12);
+
+        const decryptedData = await window.crypto.subtle.decrypt(
+            {
+                name: 'AES-GCM',
+                iv: iv
+            },
+            key,
+            content
+        );
+
+        console.log('Decrypted data:', JSON.parse(decoder.decode(decryptedData)));
+        return JSON.parse(decoder.decode(decryptedData));
+    } catch (error) {
+        console.error('Decryption error:', error);
+        throw error;
+    }
+}
+
+// Update the saveToDatabase function
 const saveToDatabase = async () => {
-    if (!username.value || !faceDescriptor.value) return
+    if (!username.value || !faceDescriptor.value) return;
     
-    isSaving.value = true
-    saveMessage.value = ''
-    saveError.value = false
+    isSaving.value = true;
+    saveMessage.value = '';
+    saveError.value = false;
 
     try {
-        // Prepare the data for Pinecone
-        const vectors = []
+        const vectors = [];
         
-        // // Add individual angle vectors
-        // capturedFrames.value.forEach((frame, index) => {
-        //     vectors.push({
-        //         id: `${username.value}_${frame.angle}`,
-        //         values: frame.descriptor,
-        //         metadata: {
-        //             username: username.value,
-        //             angle: frame.angle,
-        //             timestamp: new Date().toISOString()
-        //         }
-        //     })
-        // })
+        // Add the average vector with encrypted metadata
+        const metadata = {
+            username: await encryptMetadata(username.value),
+            angle: 'average',
+            timestamp: new Date().toISOString(),
+            // angles: capturedFrames.value.map(f => f.angle)
+        };
 
-        // encrypt
+        // const encryptedMetadata = await encryptMetadata(metadata);
 
-        // Add the average vector
-        vectors.push({
-            id: `${username.value}_average`, // random uuid 
+        const payload = {
+            id: `${username.value}_average`,
             values: faceDescriptor.value,
-            metadata: { // encrypt
-                username: username.value,
-                angle: 'average',
-                timestamp: new Date().toISOString(),
-                angles: capturedFrames.value.map(f => f.angle)
-            }
-        })
+            metadata: metadata
+        }
+        console.log('Payload:', payload);
 
-        
+        vectors.push(payload);
 
         // Send to Pinecone
         const response = await fetch('https://face4-ff60525.svc.aped-4627-b74a.pinecone.io/vectors/upsert', {
@@ -764,23 +854,21 @@ const saveToDatabase = async () => {
                 'Api-Key': 'pcsk_65jcaw_DxQsFPjgiuo5pTiYBsovpdYo7DsPALMLM5bKMzCxLgnm5rrWh8NxibVMDrCC8qG',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                vectors
-            })
-        })
+            body: JSON.stringify({ vectors })
+        });
 
-        if (!response.ok) throw new Error('Failed to save to database')
+        if (!response.ok) throw new Error('Failed to save to database');
 
-        saveMessage.value = 'Successfully saved face data!'
-        username.value = '' // Clear the input
+        saveMessage.value = 'Successfully saved face data!';
+        username.value = '';
     } catch (error) {
-        console.error('Error saving to database:', error)
-        saveMessage.value = 'Failed to save face data'
-        saveError.value = true
+        console.error('Error saving to database:', error);
+        saveMessage.value = 'Failed to save face data';
+        saveError.value = true;
     } finally {
-        isSaving.value = false
+        isSaving.value = false;
     }
-}
+};
 
 // Search functionality
 const searchResults = ref([])
@@ -857,13 +945,13 @@ const searchFace = async () => {
 
         // Convert to array and sort by best score
         searchResults.value = Object.values(matchesByUser)
-            .map(user => {
+            .map(async user => {
                 // Get the match with the highest score
                 const bestMatch = user.matches.reduce((best, current) => 
                     current.score > best.score ? current : best
                 )
                 const result = {
-                    username: user.username,
+                    username: await decryptMetadata(user.username),
                     bestScore: bestMatch.score,
                     matches: user.matches,
                     isConfirmed: bestMatch.score > 0.7
@@ -880,6 +968,34 @@ const searchFace = async () => {
         console.log('Final search results:', searchResults.value)
 
         // decrypt metadata with pin resolve username  
+
+        // // Decrypt metadata for each match
+        // for (const user of Object.values(matchesByUser)) {
+        //     for (const match of user.matches) {
+        //         if (match.metadata) {
+        //             try {
+        //                 const decryptedData = await decryptMetadata(match.metadata);
+        //                 match.metadata.username = decryptedData.username;
+        //                 user.username = decryptedData.username;
+        //                 console.log('Decrypted username:', decryptedData.username);
+        //             } catch (error) {
+        //                 console.error('Failed to decrypt username:', error);
+        //             }
+        //         }
+        //     }
+        // }
+
+        // Update search results with decrypted usernames
+        searchResults.value = Object.values(matchesByUser)
+            .map(async user => ({
+                ...user,
+                username: user.username // Use potentially decrypted username
+            }))
+            .sort((a, b) => b.bestScore - a.bestScore)
+
+        console.log('Search results with decrypted usernames:', searchResults.value)
+
+
 
     } catch (error) {
         console.error('Error searching face:', error)
