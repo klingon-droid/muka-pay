@@ -76,7 +76,7 @@
                 </div>
                 <p class="text-2xl font-bold mt-2 text-yellow-700">deposit</p>
             </div>
-            <div class="flex justify-center items-center flex-col shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)]">
+            <div @click="isHistoryDialogOpen = true" class="flex justify-center items-center flex-col shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)]">
                 <div>
                     <iconify-icon class="text-5xl text-gray-400" icon="pixelarticons:article-multiple"></iconify-icon>
                 </div>
@@ -91,6 +91,11 @@
             @send="handleSendPayment"
         />
 
+        <!-- Use the imported HistoryDialog component -->
+        <HistoryDialog 
+            :is-open="isHistoryDialogOpen" 
+            @close="isHistoryDialogOpen = false"
+        />
         
     </div>
 </template>
@@ -99,14 +104,15 @@
 import { ref, onMounted } from 'vue'
 import SendDialog from './SendDialog.vue'
 import { username, wagmiConfig } from '../stores/user'
+import HistoryDialog from './HistoryDialog.vue'
 import { useStore } from '@nanostores/vue'
 import { getAccount, getConnectors, connect, disconnect } from '@wagmi/core'
 
 const isSendDialogOpen = ref(false)
+const isHistoryDialogOpen = ref(false)
 const usdcBalance = ref(0);
 // const currentUsername = useStore(username)
 const currentUsername = 'bukamuka'
-import ReceiveDialog from './ReceiveDialog.vue'
 
 
 const walletAccount = ref(null);
