@@ -108,6 +108,7 @@ const endDrawing = () => {
     // Redraw the clean pattern
     drawFrozenPattern();
     const pattern = selectedDots.value.join('');
+    console.log('pattern', pattern);
     emit('pattern-complete', pattern);
 };
 

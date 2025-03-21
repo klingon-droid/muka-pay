@@ -7,10 +7,24 @@
         <div :class="[ hasCameraPermission? [ isFaceDetected?'scale-[0.8]':'','w-[300px] h-[300px] bg-gray-200']:'w-[200px] h-[200px] bg-black', '  rounded-full flex justify-center items-center duration-300 shrink-0' ]">
             <iconify-icon v-if="!hasCameraPermission" icon="typcn:camera" class="text-white text-[5rem] absolute"></iconify-icon>
 
-            <div v-if="hasCameraPermission" class="w-full h-full flex justify-center items-center flex-col">
-                <p>Dummy Camera Feed</p>
-                <p>FaceDetected? {{ isFaceDetected }}</p>
-                <p>isNewFaceEmbeddingGenerated? {{ isNewFaceEmbeddingGenerated }}</p>
+            <div class="w-full h-full flex justify-center items-center flex-col">
+
+                <div :class="[!isActive?'w-[200px] h-[200px]':' w-[300px] h-[300px] overflow-hidden','rounded-full duration-300 delay-75 absolute', '']">
+                    <video 
+                        ref="videoRef" 
+                        autoplay 
+                        muted 
+                        playsinline 
+                        :class="[
+                            'h-full w-full object-cover transition-transform duration-300',
+                            { 'scale-x-[-1]': isFlipped }
+                        ]"
+                    >
+                    </video>
+                </div>
+                <!-- <p>Dummy Camera Feed</p> -->
+                <!-- <p>FaceDetected? {{ isFaceDetected }}</p>
+                <p>isNewFaceEmbeddingGenerated? {{ isNewFaceEmbeddingGenerated }}</p> -->
             </div>
         </div>
 
@@ -215,6 +229,72 @@
 
 <script setup>
 
+    import { Human } from '@vladmandic/human'
+    // Initialize Human with proper configuration
+    const human = new Human({
+        backend: 'webgl',
+        modelBasePath: '/models',
+        face: {
+            enabled: true,
+            detector: {
+                enabled: true,
+                rotation: true,
+                return: true,
+                maxDetected: 1,
+                minConfidence: 0.5
+            },
+            mesh: { enabled: true },
+            embedding: {
+                enabled: true,
+                return: true
+            },
+            description: { enabled: true },
+            emotion: { enabled: false },
+            iris: { enabled: false },
+            antispoof: { enabled: false },
+            liveness: { enabled: false }
+        },
+        // Disable other features for better performance
+        body: { enabled: false },
+        hand: { enabled: false },
+        object: { enabled: false },
+        gesture: { enabled: false }
+    })
+
+    const videoRef = ref(null);
+
+    let detectInterval = null;
+
+    const startFaceDetection = async () => {
+        if (!videoRef.value) return;
+
+        // Initialize Human models
+        try {
+            await human.load();
+            await human.warmup();
+        } catch (error) {
+            console.error('Error initializing face detection:', error);
+            return;
+        }
+
+        detectInterval = setInterval(async () => {
+            if (videoRef.value.paused || videoRef.value.ended) return;
+            
+            try {
+                const result = await human.detect(videoRef.value);
+                // Update face detection status
+                isFaceDetected.value = result.face && result.face.length > 0;
+                // console.log(faceDetected.value);
+            } catch (error) {
+                console.error('Error in face detection:', error);
+            }
+        }, 100);
+    };
+
+
+
+
+
     import { ref, watch } from 'vue';
     import PatternPad2 from './PatternPad2.vue';
 
@@ -237,28 +317,50 @@
     const confirmPattern = ref('');
     const patternError = ref('');
 
-    const requestCameraPermission = () => {
+    const isActive = ref(false);
+    const isFlipped = ref(true);
+
+    const requestCameraPermission = async () => {
+        // hasCameraPermission.value = true;
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: {
+                facingMode: 'user'
+            },
+            audio: false
+        });
+        isActive.value = true;
         hasCameraPermission.value = true;
+        videoRef.value.srcObject = stream;
+        
+        await new Promise(resolve => {
+            videoRef.value.onloadedmetadata = resolve;
+        });
+        await videoRef.value.play();
+        await startFaceDetection();
+
+        // search account
+        await searchAccount();
+        
     }
 
     // dummy detect face
     
-    watch(hasCameraPermission, () => {
+    watch(hasCameraPermission, async () => {
         if (hasCameraPermission.value) {
-            setTimeout(() => {
-                isFaceDetected.value = true;
-                searchAccount();
 
+            // startFaceDetection();
+            // setTimeout(() => {
+            //     isFaceDetected.value = true;
+            //     searchAccount();
+            // }, 1000);
 
-            }, 1000);
         }
     })
 
-    const searchAccount = () => {
+    const searchAccount = async () => {
         isSearchBusy.value = true;
 
-        setTimeout(() => {
-            isSearchBusy.value = false;
+        try {
 
             // dummy for existing user
             isNewUser.value = false;
@@ -268,7 +370,37 @@
             // register_step.value = 1;
             // isNewUser.value = true;
 
-        }, 1000);
+        // setTimeout(() => {
+        //     isSearchBusy.value = false;
+        //     // dummy for new user
+        //     register_step.value = 1;
+        //     isNewUser.value = true;
+        // }, 1000);
+
+
+    }
+
+
+    const searchPinecone = async (_faceEmbedding) => {
+        // Search in Pinecone
+        const response = await fetch('https://face4-ff60525.svc.aped-4627-b74a.pinecone.io/query', {
+            method: 'POST',
+            headers: {
+                'Api-Key': 'pcsk_65jcaw_DxQsFPjgiuo5pTiYBsovpdYo7DsPALMLM5bKMzCxLgnm5rrWh8NxibVMDrCC8qG',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                vector: Array.from(_faceEmbedding),
+                topK: 5,
+                includeMetadata: true
+            })
+        })
+
+        if (!response.ok) throw new Error('Failed to search database')
+
+        const data = await response.json()
+        console.log('Pinecone response:', data)
+        return data.matches[0].score > 0.7 ? data.matches[0] : null;
     }
 
     const cancelRegister = () => {
