@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@astrojs/vue": "^5.0.7",
+    "@headlessui/vue": "^1.7.23",
     "@tailwindcss/vite": "^4.0.15",
     "@vladmandic/human": "^3.3.5",
     "astro": "^5.5.3",
