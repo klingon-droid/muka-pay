@@ -211,6 +211,15 @@
                     </button>
                 </div>
             </div>
+            <div class="pin-input-container">
+                <label for="pin" class="pin-label">PIN</label>
+                <input 
+                    type="text" 
+                    id="pin"
+                    v-model="pin" 
+                    placeholder="Enter PIN"
+                />
+            </div>
         </div>
     </div>
 </template>
@@ -1323,7 +1332,7 @@ const searchNewFaces = async () => {
 
                     // Get best match
                     const results = Object.values(matchesByUser)
-                        .map(async user => {
+                        .map(user => {
                             // Get the match with the highest score
                             const bestMatch = user.matches.reduce((best, current) => 
                                 current.score > best.score ? current : best
@@ -1346,6 +1355,7 @@ const searchNewFaces = async () => {
 
 
                     // Update tracked face with result
+                    results[0].username = await decryptMetadata(results[0].username, pin.value)
                     trackedFace.searchResult = results[0] || null
                     trackedFace.isSearching = false
                     trackedFace.lastSearchTime = currentTime
