@@ -44,7 +44,7 @@
                 </div>
                 <p class="text-2xl font-bold mt-2 text-blue-700">send</p>
             </div>
-            <div class="flex justify-center items-center flex-col shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)]">
+            <div @click="gotoReceive()" class="flex justify-center items-center flex-col shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)] cursor-pointer hover:bg-gray-50">
                 <div>
                     <iconify-icon class="text-5xl text-green-400" icon="pixelarticons:arrow-down"></iconify-icon>
                 </div>
@@ -70,6 +70,12 @@
             @close="isSendDialogOpen = false"
             @send="handleSendPayment"
         />
+
+        <!-- Use the imported ReceiveDialog component -->
+        <ReceiveDialog
+            :is-open="isReceiveDialogOpen"
+            @close="isReceiveDialogOpen = false"
+        />
     </div>
 </template>
 
@@ -83,6 +89,8 @@ const isSendDialogOpen = ref(false)
 const usdcBalance = ref(0);
 // const currentUsername = useStore(username)
 const currentUsername = 'bukamuka'
+import ReceiveDialog from './ReceiveDialog.vue'
+
 
 const handleSendPayment = (payment) => {
     // Implement payment logic here
@@ -122,4 +130,7 @@ const getBalance = async () => {
 }
 
 
+const gotoReceive = () => {
+    window.location.href = '/receive'
+}
 </script>
