@@ -69,6 +69,19 @@
 
                 <!-- Add this after the webcam controls div -->
                 <div v-if="isWebcamActive" class="search-section">
+
+                    <div class="pin-input-container">
+                        <label for="pin" class="pin-label">PIN</label>
+                        <input 
+                            type="text" 
+                            id="pin"
+                            v-model="pin" 
+                            placeholder="Enter PIN"
+                            class="pin-input"
+                        />
+                    </div>
+
+
                     <button class="search-btn" @click="searchFace" :disabled="!isFaceDetected || isSearching">
                         {{ isSearching ? 'Searching...' : 'Search for Face' }}
                     </button>
@@ -166,7 +179,7 @@
                             <div class="result-info">
                                 <div class="result-username">{{ result.username }}</div>
                                 <div class="result-score" :class="{ confirmed: result.isConfirmed }">
-                                    Distance: {{ result.bestScore.toFixed(4) }}
+                                    Distance: {{ result.bestScore?.toFixed(4) }}
                                     <span v-if="result.isConfirmed" class="confirmation-badge">Confirmed Match</span>
                                 </div>
                                 <div class="result-details">
@@ -253,6 +266,7 @@ const isStable = ref(false)
 const capturedFrames = ref([])
 const selectedAngle = ref(null)
 const username = ref('')
+const pin = ref('')
 const isSaving = ref(false)
 const saveMessage = ref('')
 const saveError = ref(false)
@@ -756,9 +770,9 @@ async function getEncryptionKey(password) {
 }
 
 // Encryption function
-async function encryptMetadata(metadata) {
+async function encryptMetadata(metadata, pin) {
     try {
-        const encryptionKey = 'your-secure-encryption-key';
+        const encryptionKey = pin; // your-secure-encryption-key
         const key = await getEncryptionKey(encryptionKey);
         const iv = window.crypto.getRandomValues(new Uint8Array(12));
         const encodedData = encoder.encode(JSON.stringify(metadata));
@@ -786,9 +800,9 @@ async function encryptMetadata(metadata) {
 }
 
 // Decryption function
-async function decryptMetadata(encryptedData) {
+async function decryptMetadata(encryptedData, pin) {
     try {
-        const encryptionKey = 'your-secure-encryption-key';
+        const encryptionKey = pin;
         const key = await getEncryptionKey(encryptionKey);
 
         // Convert base64 to Uint8Array
@@ -809,7 +823,6 @@ async function decryptMetadata(encryptedData) {
             content
         );
 
-        console.log('Decrypted data:', JSON.parse(decoder.decode(decryptedData)));
         return JSON.parse(decoder.decode(decryptedData));
     } catch (error) {
         console.error('Decryption error:', error);
@@ -825,18 +838,22 @@ const saveToDatabase = async () => {
     saveMessage.value = '';
     saveError.value = false;
 
+    if (!pin.value) {
+        saveError.value = true;
+        saveMessage.value = 'Please enter a PIN';
+        return;
+    }
+
     try {
         const vectors = [];
         
         // Add the average vector with encrypted metadata
         const metadata = {
-            username: await encryptMetadata(username.value),
+            username: await encryptMetadata(username.value, pin.value),
             angle: 'average',
             timestamp: new Date().toISOString(),
             // angles: capturedFrames.value.map(f => f.angle)
         };
-
-        // const encryptedMetadata = await encryptMetadata(metadata);
 
         const payload = {
             id: `${username.value}_average`,
@@ -945,13 +962,13 @@ const searchFace = async () => {
 
         // Convert to array and sort by best score
         searchResults.value = Object.values(matchesByUser)
-            .map(async user => {
+            .map(user => {
                 // Get the match with the highest score
                 const bestMatch = user.matches.reduce((best, current) => 
                     current.score > best.score ? current : best
                 )
                 const result = {
-                    username: await decryptMetadata(user.username),
+                    username: user.username,
                     bestScore: bestMatch.score,
                     matches: user.matches,
                     isConfirmed: bestMatch.score > 0.7
@@ -986,12 +1003,14 @@ const searchFace = async () => {
         // }
 
         // Update search results with decrypted usernames
-        searchResults.value = Object.values(matchesByUser)
-            .map(async user => ({
-                ...user,
-                username: user.username // Use potentially decrypted username
-            }))
-            .sort((a, b) => b.bestScore - a.bestScore)
+        // searchResults.value = Object.values(matchesByUser)
+        //     .map(user => ({
+        //         ...user,
+        //         username: user.username // Use potentially decrypted username
+        //     }))
+        //     .sort((a, b) => b.bestScore - a.bestScore)
+
+        searchResults.value[0].username = await decryptMetadata(searchResults.value[0].username, pin.value)
 
         console.log('Search results with decrypted usernames:', searchResults.value)
 
@@ -1140,10 +1159,10 @@ const startSearchFaceDetection = async () => {
                         const result = trackedFace.searchResult
                         if (result.bestScore > 0.7) {
                             ctx.fillText(result.username, box[0] + 5, box[1] - 25)
-                            ctx.fillText(`Score: ${result.bestScore.toFixed(2)}`, box[0] + 5, box[1] - 10)
+                            ctx.fillText(`Score: ${result?.bestScore?.toFixed(2)}`, box[0] + 5, box[1] - 10)
                         } else {
                             ctx.fillText('No match found', box[0] + 5, box[1] - 25)
-                            ctx.fillText(`Score: ${result.bestScore.toFixed(2)}`, box[0] + 5, box[1] - 10)
+                            ctx.fillText(`Score: ${result?.bestScore?.toFixed(2)}`, box[0] + 5, box[1] - 10)
                         }
                     } else {
                         ctx.fillText('No match found', box[0] + 5, box[1] - 25)
@@ -1304,7 +1323,7 @@ const searchNewFaces = async () => {
 
                     // Get best match
                     const results = Object.values(matchesByUser)
-                        .map(user => {
+                        .map(async user => {
                             // Get the match with the highest score
                             const bestMatch = user.matches.reduce((best, current) => 
                                 current.score > best.score ? current : best
@@ -1323,6 +1342,8 @@ const searchNewFaces = async () => {
                             return result
                         })
                         .sort((a, b) => b.bestScore - a.bestScore) // Sort by highest score first
+
+
 
                     // Update tracked face with result
                     trackedFace.searchResult = results[0] || null
