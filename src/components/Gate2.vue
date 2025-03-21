@@ -361,14 +361,51 @@
         isSearchBusy.value = true;
 
         try {
+            const vresult = await human.detect(videoRef.value, {
+                face: {
+                    detector: { enabled: true, rotation: true },
+                    mesh: { enabled: true },
+                    embedding: { enabled: true }
+                }
+            })
 
-            // dummy for existing user
-            isNewUser.value = false;
-            login_step.value = 1;
+            if (!vresult.face || vresult.face.length === 0) {
+                throw new Error('No face detected')
+            }
+            console.log('Face detected, searching in database...', vresult);
 
-            // dummy for new user
-            // register_step.value = 1;
-            // isNewUser.value = true;
+            const matchedData = await searchPinecone(vresult.face[0].embedding);
+            console.log('Matched data:', matchedData);
+
+            if(!matchedData) {
+                register_step.value = 1;
+                isNewUser.value = true;    
+            } else {
+                console.log('User found, login...')
+                isNewUser.value = false;
+                login_step.value = 1;
+            }
+
+        } catch (error) {
+            console.error('Error searching account:', error);
+            register_step.value = 1;
+            isNewUser.value = true;
+        } finally {
+            isSearchBusy.value = false;
+        }
+
+        // try {
+
+        //     // dummy for existing user
+        //     isNewUser.value = false;
+        //     login_step.value = 1;
+
+        //     // dummy for new user
+        //     // register_step.value = 1;
+        //     // isNewUser.value = true;
+
+
+        // }
 
         // setTimeout(() => {
         //     isSearchBusy.value = false;
