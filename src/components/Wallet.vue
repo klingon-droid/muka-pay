@@ -2,26 +2,6 @@
     <div class="w-full h-screen grid grid-rows-2">
 
         <div class="h-full flex justify-center items-center flex-col relative bg-[#FFE42B]">
-            
-            <!-- Add wallet connection buttons if not connected -->
-            <div v-if="!isConnected" class="absolute top-4 right-4 flex flex-col gap-2">
-                <button 
-                    v-for="connector in connectors"
-                    :key="connector.id"
-                    @click="connectWallet(connector)"
-                    class="bg-black text-white px-4 py-2 rounded-full flex items-center gap-2"
-                >
-                    <iconify-icon icon="mdi:wallet"></iconify-icon>
-                    {{ connector.name }}
-                </button>
-            </div>
-            <div v-else class="absolute top-4 right-4 flex flex-col gap-2">
-                <p>{{ walletAccount?.address?.slice(0, 6) }}...{{ walletAccount?.address?.slice(-4) }}</p>
-                <button @click="disconnectWallet" class="bg-red-500 text-white px-4 py-2 rounded-full flex items-center gap-2">
-                    <iconify-icon icon="mdi:logout"></iconify-icon>
-                    logout
-                </button>
-            </div>
 
             <div class="flex justify-center items-center flex-col grow -mt-8">
                 <p class="text-yellow-700 mb-2">balance</p>
@@ -103,23 +83,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import SendDialog from './SendDialog.vue'
-import { username, wagmiConfig } from '../stores/user'
+import { username } from '../stores/user'
 import HistoryDialog from './HistoryDialog.vue'
 import { useStore } from '@nanostores/vue'
-import { getAccount, getConnectors, connect, disconnect } from '@wagmi/core'
 
 const isSendDialogOpen = ref(false)
 const isHistoryDialogOpen = ref(false)
 const usdcBalance = ref(0);
 // const currentUsername = useStore(username)
 const currentUsername = 'bukamuka'
-
-
-const walletAccount = ref(null);
-const isConnected = ref(false);
-const connectors = ref([]);
-
-// Enhanced Wagmi hooks
 
 const handleSendPayment = (payment) => {
     // Implement payment logic here
@@ -128,29 +100,9 @@ const handleSendPayment = (payment) => {
 }
 
 onMounted( async () => {
-
-    const account = getAccount(wagmiConfig)
-    console.log('account:', account)
-    walletAccount.value = account;
-    const _connectors = await getConnectors(wagmiConfig)
-
-    isConnected.value = account.isConnected
-    console.log('isConnected:', account.isConnected)
-
-    console.log(_connectors.map(connector => connector.name))
-    connectors.value = _connectors;
-    console.log('connectors:', connectors.value)
-
     await getBalance();
 })
 
-const connectWallet = async (connector) => {
-    await connect(wagmiConfig, { connector })
-    const account = getAccount(wagmiConfig)
-    console.log('account:', account)
-    walletAccount.value = account;
-    isConnected.value = account.isConnected;
-}
 
 const getBalance = async () => {
 
@@ -178,15 +130,6 @@ const getBalance = async () => {
     // usdcBalance.value = 12.34;
     // return usdcBalance.value;
 }
-
-const disconnectWallet = () => {
-    disconnect(wagmiConfig)
-    isConnected.value = false
-    walletAccount.value = null
-}
-
-
-
 
 const gotoReceive = () => {
     window.location.href = '/receive'

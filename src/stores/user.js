@@ -8,6 +8,7 @@ export function setUsername(name) {
 }
 
 import * as circomlibjs from 'circomlibjs'
+import * as snarkjs from 'snarkjs'
 
 // Convert string to field element
 function strToField(str) {
@@ -33,6 +34,41 @@ export async function getUsernameHash(_username) {
     return poseidon.F.toString(usernameHash);
 }
 
+// Generate proof with actual inputs
+export async function generateProof(_username, _password, _nonce = Date.now()) {
+    // Initialize Poseidon
+    const poseidon = await circomlibjs.buildPoseidon();
+
+    // Convert inputs to field elements
+    const usernameField = strToField(_username);
+    const passwordField = strToField(_password);
+
+    // Generate Poseidon hashes
+    const usernameHash = poseidon([usernameField]);
+    const passwordHash = poseidon([passwordField]);
+
+    // Create input for the circuit
+    const input = {
+        password_hash: poseidon.F.toString(passwordHash),
+        username_hash: poseidon.F.toString(usernameHash),
+        nonce: _nonce.toString(),
+        result_hash: poseidon.F.toString(poseidon([passwordHash, usernameHash, BigInt(_nonce)]))
+    };
+
+    // Generate the proof
+    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+        input,
+        "./circuit.wasm",
+        "./circuit_final.zkey"
+    );
+
+    return { 
+        proof, 
+        publicSignals,
+        input,
+    };
+
+}
 
 
 
