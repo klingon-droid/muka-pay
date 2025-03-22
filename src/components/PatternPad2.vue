@@ -8,7 +8,7 @@
                     'w-8 h-8 rounded-full transition-all duration-200',
                     selectedDots.includes(i-1) 
                         ? color === 'black' ? 'bg-black scale-75' : 'bg-white scale-75' 
-                        : color === 'black' ? 'bg-gray-300' : 'bg-gray-600'
+                        : color === 'black' ? 'bg-gray-300' : 'bg-white/80'
                 ]"></div>
             </div>
         </div>

@@ -1,5 +1,5 @@
 <template>
-    <div class="w-6 h-6 relative">
+    <div class="w-6 h-6 relative text-white">
         <svg ref="eyeIcon" viewBox="0 0 24 24" class="w-full h-full">
             <!-- Eye outline -->
             <path

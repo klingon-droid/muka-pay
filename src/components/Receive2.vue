@@ -1,11 +1,11 @@
 <template>
-    <div :class="[submitSuccess?'bg-green-500':'bg-green-500/0']" class="w-screen h-screen flex flex-col justify-end items-center font-lexend duration-1000 delay-500">
+    <div :class="[submitSuccess?'bg-green-500':'bg-black']" class="w-screen h-screen flex flex-col justify-end items-center font-lexend duration-1000 delay-500">
 
-        <div class="fixed top-0 left-0 w-full p-4 pointer-events-none flex justify-between items-center">
+        <div class="fixed top-0 left-0 w-full p-4 pointer-events-none flex justify-end items-center">
 
-            <button @click="handleCancel" class="bg-black/10 text-black py-2 px-4 rounded-full pointer-events-auto    ">Cancel</button>
+            <!-- <button @click="handleCancel" class="bg-white text-black py-2 px-4 rounded-full pointer-events-auto">Cancel</button> -->
 
-            <button @click="handleEdit" class="underline font-bold py-2 px-4 pointer-events-auto">Edit</button>
+            <button @click="handleEdit" class="underline font-bold py-2 px-4 pointer-events-auto text-white">Edit</button>
             
         </div>
 
@@ -22,18 +22,18 @@
             <p>1234 USDC</p>
         </div> -->
 
-        <div :class="[isEditMode?'h-[50vh] flex flex-col justify-center items-center':'']" class="text-center space-y-8">
+        <div :class="[isEditMode?'h-[50vh] flex flex-col justify-center items-center':'']" class="text-center space-y-8 text-white">
             <div class="flex justify-center items-center">
                 <p v-if="!submitSuccess" class="text-3xl">pay </p>
                 <p v-else class="text-3xl">paid</p>
-                <div class="ml-2 bg-black text-white py-2 px-4 rounded-full text-xl ">@{{ recipientUsername }}</div>
+                <div class="ml-2 bg-white text-black py-2 px-4 rounded-full text-xl ">@{{ recipientUsername }}</div>
             </div>
             <p v-if="!isEditMode" class="text-6xl font-bold">{{ amount }} USDC</p>
-            <p v-if="isEditMode" class="text-5xl font-bold break-all flex justify-center items-center flex-wrap">
+            <div v-if="isEditMode" class="text-5xl font-bold break-all flex justify-center items-center flex-wrap font-doto">
                 <p v-if="amount">{{ amount }}</p>
-                <p v-else class="text-gray-400 whitespace-nowrap">Enter amount</p>
-                <p class="ml-2">USDC</p>
-            </p>
+                <p v-else class="text-white/20 whitespace-nowrap p-4">Enter amount</p>
+                <p class="ml-2 text-4xl text-white/50">Base USDC</p>
+            </div>
             
             <!-- <p class="text-2xl">to @username</p> -->
         </div>
@@ -45,17 +45,17 @@
                         v-for="key in keypadKeys" 
                         :key="key"
                         @click="handleKeyPress(key)"
-                        class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-3xl font-bold transition-colors duration-100"
+                        class="bg-white/10 text-white hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-3xl font-bold transition-colors duration-100 font-doto"
                     >
                         {{ key }}
                     </button>
                 </div>
             </div>
 
-            <div class="p-4 w-full">
+            <div class="p-4 w-full pb-8">
                 <button 
                     @click="handleConfirm"
-                    class="bg-black text-white rounded-xl p-4 w-full text-lg font-bold hover:bg-black/90 active:bg-black/80 transition-colors"
+                    class="bg-white text-black rounded-xl p-4 w-full text-lg hover:bg-white/90 active:bg-white/80 transition-colors"
                 >
                     Confirm
                 </button>
@@ -72,7 +72,7 @@
 
             <template v-if="!submitSuccess">
 
-                <div :class="[isIdentifyingFace?'w-[18vh] h-[18vh]':'w-[15vh] h-[15vh]']" class=" bg-gray-200 rounded-full mb-8 duration-300">
+                <div :class="[isIdentifyingFace?'w-[18vh] h-[18vh]':'w-[15vh] h-[15vh]']" class=" bg-gray-200 rounded-full mb-8 duration-300 overflow-hidden">
                     <video 
                         ref="videoRef" 
                         autoplay 
@@ -101,7 +101,7 @@
             <template v-if="!submitSuccess">
 
                 <div v-if="accountFound && !isVerified" class="flex flex-col items-center gap-2">
-                    <button :disabled="submitBusy" @click="showPatternDialog = true" class="bg-black text-white py-2 px-4 pr-2 rounded-xl flex items-center gap-2 disabled:opacity-50">
+                    <button :disabled="submitBusy" @click="showPatternDialog = true" class="bg-white text-black py-2 px-4 pr-2 rounded-xl flex items-center gap-2 disabled:opacity-50">
                             <p>Sign with Pattern</p>
                             <iconify-icon class="text-4xl" icon="mage:dots-menu" />
                     </button>
@@ -114,7 +114,7 @@
                         <p class="text-red-500">This is the final step.<br>Sign again to confirm.</p>
                     </div>
 
-                    <button :disabled="submitBusy" @click="showPatternDialog = true" class="bg-black text-white p-4 px-8 pr-4 text-lg rounded-xl flex items-center justify-center disabled:opacity-50 w-[80vw]">
+                    <button :disabled="submitBusy" @click="showPatternDialog = true" class="bg-white text-black p-4 px-8 pr-4 text-lg rounded-xl flex items-center justify-center disabled:opacity-50 w-[80vw]">
 
                         <template v-if="!submitBusy">
                             <span class="mr-4">Pay {{ amount }} USDC</span>
@@ -127,7 +127,7 @@
 
                     </button>
 
-                    <button @click="handleSignOutAndCancel" class="border-2 p-4 px-8 text-lg rounded-xl flex items-center justify-center w-full max-w-sm">Cancel & Sign Out</button>
+                    <button @click="handleSignOutAndCancel" class="border-2 border-white text-white p-4 px-8 text-lg rounded-xl flex items-center justify-center w-full max-w-sm">Cancel & Sign Out</button>
 
                 </div>
                 
@@ -521,6 +521,14 @@ const handleSignOutAndCancel = () => {
 <style>
 .font-lexend {
     font-family: "Lexend", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    font-variation-settings: "wdth" 100;
+}
+
+.font-doto {
+    font-family: "Doto", sans-serif;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
