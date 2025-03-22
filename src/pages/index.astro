@@ -9,6 +9,13 @@ import Gate2 from '../components/Gate2.vue';
 ---
 
 <Layout>
+	<script>
+		import { Buffer } from "buffer";
+	
+		if (typeof window !== "undefined") {
+		  window.Buffer = Buffer;
+		}
+	  </script>
 	<!-- <App client:only="vue" /> -->
 	 <!-- <Gate client:only="vue" /> -->
 	 <Gate2 client:only="vue" />
