@@ -57,9 +57,14 @@
         <p class="text-2xl font-doto mb-4">Base USDC Balance</p>
         
         <div v-if="isLoading && refreshAnimation === 'wave'" class="grid grid-cols-3 text-9xl font-doto">
-          <div class="animate-wave-1">.</div>
-          <div class="animate-wave-2">.</div>
-          <div class="animate-wave-3">.</div>
+          <template v-if="isRareExpression">
+            <div class="col-span-3 animate-wave-1 text-7xl">{{ currentSymbol }}</div>
+          </template>
+          <template v-else>
+            <div class="animate-wave-1">{{ currentSymbol }}</div>
+            <div class="animate-wave-2">{{ currentSymbol }}</div>
+            <div class="animate-wave-3">{{ currentSymbol }}</div>
+          </template>
         </div>
         <div v-else class="text-8xl font-doto">
           {{ usdcBalance }}
@@ -255,6 +260,39 @@ const isUpdating = ref(false);
 const refreshAnimation = ref('wave');
 
 const receiveRef = ref(null);
+
+// Add random symbols array with single characters
+const loadingSymbols = ['.', '*', '!', '?', '#', '@', '$', '%', '&', '+', '-', '='];
+const rareExpressions = ['^_^', '>_<', '=.=', ':-)'];
+const currentSymbol = ref('.');
+const previousSymbol = ref('');
+const isRareExpression = ref(false);
+
+const getRandomSymbol = () => {
+  let newSymbol;
+  let isRare;
+  
+  // 20% chance to get a rare expression
+  isRare = Math.random() < 0.5;
+  
+  if (isRare) {
+    do {
+      newSymbol = rareExpressions[Math.floor(Math.random() * rareExpressions.length)];
+    } while (newSymbol === previousSymbol.value);
+  } else {
+    do {
+      newSymbol = loadingSymbols[Math.floor(Math.random() * loadingSymbols.length)];
+    } while (newSymbol === previousSymbol.value);
+  }
+  
+  previousSymbol.value = newSymbol;
+  isRareExpression.value = isRare;
+  return newSymbol;
+};
+
+const updateLoadingSymbols = () => {
+  currentSymbol.value = getRandomSymbol();
+};
 
 onMounted(async () => {
   /// get face embedding from local storage
@@ -501,6 +539,7 @@ const handleLockWallet = () => {
 const tapToRefreshBalance = async (animation) => {
   refreshAnimation.value = animation;
   if (!isLoading.value) {
+    updateLoadingSymbols();
     await getBalance();
   }
 }
