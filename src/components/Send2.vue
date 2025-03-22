@@ -139,7 +139,7 @@
         </button>
         <button v-if="isSending" class="pointer-events-auto bg-white text-black p-4 rounded-xl gap-2 disabled:opacity-50 hover:bg-white/90 active:bg-white/80 transition-colors w-full flex justify-center items-center text-xl mb-4">
             <p>Signing...</p>
-            <iconify-icon class="text-4xl animate-[spin_3s]" icon="mage:dots-menu" />
+            <iconify-icon :class="isSending ? 'animate-[spin_3s_linear_infinite]' : ''" class="text-4xl" icon="mage:dots-menu" />
         </button>
 
         <Teleport to="body">
@@ -390,7 +390,7 @@ const handleSend = async (_proof) => {
     }
     console.log('payload:', payload)
 
-    const response = await fetch('/api/pay', {
+    const response = await fetch(`${window.location.origin}/api/pay`, {
         method: 'POST',
         body: JSON.stringify(payload)
     })
