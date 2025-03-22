@@ -305,6 +305,8 @@
     import PatternPad2 from './PatternPad2.vue';
     import { setUsername, generateProof } from '../stores/user';
 
+    const emit = defineEmits(['login-success', 'register-success']);
+
     const hasCameraPermission = ref(false);
     const isFaceDetected = ref(false);
     const isFaceLargeEnough = ref(false);
@@ -339,7 +341,7 @@
         /// get face embedding from local storage
         const faceEmbedding = localStorage.getItem('mukapay-face');
         if (faceEmbedding) {
-            matchedEmbedding.value = JSON.parse(faceEmbedding);
+            matchedEmbedding.value = [JSON.parse(faceEmbedding)]; // Store as array to be consistent
             isNewUser.value = false;
             // login_step.value = 1;
             window.location.href = '/app';
@@ -402,19 +404,19 @@
             }
             console.log('Face detected, searching in database...', vresult);
 
-            const matchedData = await searchPinecone(vresult.face[0].embedding);
-            console.log('Matched data:', matchedData);
+            const candidates = await searchPinecone(vresult.face[0].embedding);
+            console.log('Matched candidates:', candidates);
 
-            if(!matchedData) {
+            if(!candidates || candidates.length === 0) {
                 register_step.value = 1;
                 isNewUser.value = true;    
             } else {
-                console.log('User found, login...')
-                localStorage.setItem('mukapay-face', JSON.stringify(matchedData));
-                matchedEmbedding.value = matchedData;
+                console.log('User candidates found, waiting for login...')
+                localStorage.setItem('mukapay-candidates', JSON.stringify(candidates));
+                matchedEmbedding.value = candidates;
                 isNewUser.value = false;
-                // login_step.value = 1;
-                window.location.href = '/app';
+                login_step.value = 1;
+                // window.location.href = '/app';
             }
 
         } catch (error) {
@@ -468,7 +470,10 @@
 
         const data = await response.json()
         console.log('Pinecone response:', data)
-        return data.matches[0].score > 0.7 ? data.matches[0] : null;
+        
+        // Return all matches with a score above threshold (instead of just the top one)
+        const candidates = data.matches.filter(match => match.score > 0.7);
+        return candidates.length > 0 ? candidates : null;
     }
 
     const cancelRegister = () => {
@@ -792,7 +797,7 @@
 
             if (!response.ok) throw new Error('Failed to save to database');
 
-            const register = await fetch('/api/register', {
+            const register = await fetch(`${window.location.origin}/api/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -822,23 +827,41 @@
         console.log('pattern:', pattern);
         login_step.value = 2;
 
-        const decryptedUsername = await decryptMetadata(matchedEmbedding.value.metadata.username, pattern)
-        console.log('decryptedUsername:', decryptedUsername);
+        const candidates = matchedEmbedding.value;
+        let loginSuccessful = false;
 
-        if(decryptedUsername) {
-            setUsername(decryptedUsername);
-            window.location.href = '/app';
-        } else {
+        // Try each candidate in order of highest score
+        for (const candidate of candidates) {
+            try {
+                const decryptedUsername = await decryptMetadata(candidate.metadata.username, pattern);
+                console.log('Trying candidate:', candidate.id, 'Result:', decryptedUsername);
+                
+                if (decryptedUsername) {
+                    // Found the right match
+                    console.log('Login successful with candidate:', candidate);
+                    setUsername(decryptedUsername);
+                    
+                    // Store only the successful candidate for future use
+                    localStorage.setItem('mukapay-face', JSON.stringify(candidate));
+                    
+                    loginSuccessful = true;
+                    clearInterval(detectInterval);
+                    // remove all candidates
+                    matchedEmbedding.value = [];
+                    localStorage.removeItem('mukapay-candidates');
+                    // window.location.href = '/app';
+                    emit('login-success', decryptedUsername);
+                    break;
+                }
+            } catch (error) {
+                console.error('Error trying candidate:', error);
+                // Continue to next candidate
+            }
+        }
+
+        if (!loginSuccessful) {
             login_step.value = 3;
-        }  
-
-        // setTimeout(() => {
-        //     // dummy for login success
-        //     // TODO: store user's credentials to device so next login no need to login again
-        //     window.location.href = '/app';
-        //     // dummy for login failed
-        //     // login_step.value = 3;
-        // }, 1000);
+        }
     }
 
 

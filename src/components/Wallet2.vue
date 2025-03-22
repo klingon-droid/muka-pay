@@ -1,6 +1,15 @@
 <template>
-  <div :class="[isLocked ? 'bg-black' : 'grid grid-cols-1 grid-rows-[auto_1fr_auto]']" class="w-full h-screen font-lexend">
+  <div :class="[isLocked ? (isFreshLogin ? 'bg-white' : 'bg-black') : 'grid grid-cols-1 grid-rows-[auto_1fr_auto]']" class="w-full h-screen font-lexend">
     <template v-if="isLocked">
+
+      <template v-if="isFreshLogin">
+
+
+        <Gate2 @login-success="handleLoginSuccess" />
+
+      </template>
+
+      <template v-else>
       <div class="w-full h-full flex justify-center items-center p-8 flex-col">
         <div class="w-full text-center space-y-2">
           <p class="text-2xl font-doto text-white">Account Locked</p>
@@ -18,6 +27,7 @@
           <button @click="deleteLocalStorage()" class="bg-white text-black font-bold text-lg px-6 py-4 rounded-full w-full">Reset Account</button>
         </div>
       </div>
+    </template>
     </template>
 
     <template v-else>
@@ -180,6 +190,8 @@ import { useStore } from "@nanostores/vue";
 import ExpandableButton from "./ExpandableButton.vue";
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
 
+import Gate2 from "./Gate2.vue";
+
 const isLocked = ref(true);
 const matchedEmbedding = ref(null);
 const currentUsername = ref(null);
@@ -196,11 +208,18 @@ import Deposit from "./Deposit.vue";
 import Send2 from "./Send2.vue";
 import History2 from "./History2.vue";
 
+const isFreshLogin = ref(false);
+
 onMounted(() => {
   /// get face embedding from local storage
   const faceEmbedding = localStorage.getItem("mukapay-face");
   if (faceEmbedding) {
+    isFreshLogin.value = false;
     matchedEmbedding.value = JSON.parse(faceEmbedding);
+  } else {
+
+    isFreshLogin.value = true;
+
   }
 
   // Watch the store value
@@ -343,7 +362,7 @@ async function deletePineconeRecord(id) {
 
 const deleteLocalStorage = () => {
   localStorage.removeItem('mukapay-face');
-  window.location.reload();
+  window.location.href = '/app';
 }
 
 const handleLogout = () => {
@@ -353,6 +372,9 @@ const handleLogout = () => {
 
   localStorage.removeItem('mukapay-face');
   
+  // delete local storage
+  // deleteLocalStorage();
+
   isMenuOpen.value = false;
   isLocked.value = true;
   
@@ -371,6 +393,14 @@ const handleDeleteAccount = async () => {
   }
   isMenuOpen.value = false;
 }
+
+const handleLoginSuccess = (username) => {
+  setUsername(username);
+    currentUsername.value = username;
+    isLocked.value = false;
+    getBalance();
+}
+
 </script>
 
 <style>
