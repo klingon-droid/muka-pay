@@ -1,5 +1,5 @@
 <template>
-  <div :class="[isLocked ? (isFreshLogin ? 'bg-white' : 'bg-black') : 'grid grid-cols-1 grid-rows-[auto_1fr_auto]']" class="w-full h-screen font-lexend">
+  <div :class="[isLocked ? (isFreshLogin ? 'bg-white' : 'p-2') : 'grid grid-cols-1 grid-rows-[auto_1fr_auto]']" class="w-full h-screen font-lexend">
     <template v-if="isLocked">
 
       <template v-if="isFreshLogin">
@@ -10,23 +10,25 @@
       </template>
 
       <template v-else>
-      <div class="w-full h-full flex justify-center items-center p-8 flex-col">
-        <div class="w-full text-center space-y-2">
-          <p class="text-2xl font-doto text-white">Account Locked</p>
-
-          <div class="text-center">
-            <p class="text-sm text-gray-400">You data is encrypted and only accessible with your secret pattern</p>
+        <div class="bg-black w-full h-full rounded-xl">
+          <div class="w-full h-full flex justify-center items-center p-8 flex-col">
+            <div class="w-full text-center space-y-2">
+              <p class="text-2xl font-doto text-white">Account Locked</p>
+    
+              <div class="text-center">
+                <p class="text-sm text-gray-400">You data is encrypted and only accessible with your secret pattern</p>
+              </div>
+            </div>
+    
+            <div class="w-full flex justify-center items-center grow flex-col">
+              <PatternPad2 ref="patternPadRef" color="white" @pattern-complete="handlePatternComplete" />
+            </div>
+    
+            <div>
+              <button @click="deleteLocalStorage()" class="bg-white text-black font-bold text-lg px-6 py-4 rounded-full w-full">Reset Account</button>
+            </div>
           </div>
         </div>
-
-        <div class="w-full flex justify-center items-center grow flex-col">
-          <PatternPad2 ref="patternPadRef" color="white" @pattern-complete="handlePatternComplete" />
-        </div>
-
-        <div>
-          <button @click="deleteLocalStorage()" class="bg-white text-black font-bold text-lg px-6 py-4 rounded-full w-full">Reset Account</button>
-        </div>
-      </div>
     </template>
     </template>
 

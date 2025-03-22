@@ -107,15 +107,13 @@
                     </button>
                 </div>
 
-                <div v-if="accountFound && isVerified" class="flex flex-col items-center gap-2">
-                    
-                    <div class="mb-12 text-center px-8">
-                        <p class="text-2xl font-bold mb-4 text-white">Hello <span class="font-doto text-3xl ml-2">@{{ payerUsername }}</span> </p>
-                        <p class="text-red-500">This is the final step.<br>Sign again to confirm.</p>
+                <div v-if="accountFound && isVerified" class="flex flex-col items-center gap-4">
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-white">Hello <span class="font-doto text-3xl ml-2">@{{ payerUsername }}</span></p>
+                        <p class="text-red-500">Sign again to confirm payment</p>
                     </div>
 
-                    <button :disabled="submitBusy" @click="showPatternDialog = true" class="bg-white text-black p-4 px-8 pr-4 text-lg rounded-xl flex items-center justify-center disabled:opacity-50 w-[80vw]">
-
+                    <button :disabled="submitBusy" @click="showPatternDialog = true" class="bg-white text-black p-4 px-8 text-lg rounded-xl flex items-center justify-center disabled:opacity-50 w-[80vw] h-14">
                         <template v-if="!submitBusy">
                             <span class="mr-4">Pay {{ amount }} USDC</span>
                             <iconify-icon class="text-4xl" icon="mage:dots-menu" />
@@ -124,11 +122,9 @@
                             <span class="mr-4">Signing...</span>
                             <iconify-icon class="text-4xl animate-[spin_3s]" icon="mage:dots-menu" />
                         </template>
-
                     </button>
 
-                    <button v-if="!submitBusy" @click="handleSignOutAndCancel" class="border-2 border-white text-white p-4 px-8 text-lg rounded-xl flex items-center justify-center w-full max-w-sm">Cancel & Sign Out</button>
-
+                    <button v-if="!submitBusy" @click="handleSignOutAndCancel" class="border-2 border-white text-white p-4 px-8 text-lg rounded-xl flex items-center justify-center w-[80vw] h-14">Cancel & Sign Out</button>
                 </div>
                 
             </template>
@@ -514,6 +510,7 @@ const handlePay = async () => {
             })
         })
         if (!response.ok) {
+            alert('Payment failed. Please try again.');
             return false;
         } else {
             const data = await response.json()
@@ -522,7 +519,8 @@ const handlePay = async () => {
             return true;
         }
     } catch (error) {
-        console.error('Error paying:', error)
+        console.log('Error paying:', error)
+        alert('Payment failed. Please try again.');
         return false;
     }
 }
