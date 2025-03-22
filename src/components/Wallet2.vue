@@ -73,7 +73,7 @@
       <div class="flex flex-col gap-1 w-full mb-8">
         <!-- <button @click="isSendDialogOpen = true" class="bg-black text-white font-bold text-xl p-4 py-6 rounded-full w-full">Send</button> -->
 
-        <ExpandableButton :button-id="'receive'">
+        <ExpandableButton :button-id="'receive'" @close="tapToRefreshBalance">
           <template #button_text>Receive</template>
 
           <template #content>
@@ -81,7 +81,7 @@
           </template>
         </ExpandableButton>
 
-        <ExpandableButton :button-id="'deposit'">
+        <ExpandableButton :button-id="'deposit'" @close="tapToRefreshBalance">
           <template #button_text>Deposit</template>
 
           <template #content>
@@ -89,7 +89,7 @@
           </template>
         </ExpandableButton>
 
-        <ExpandableButton :button-id="'send'">
+        <ExpandableButton :button-id="'send'" @close="tapToRefreshBalance">
           <template #button_text>Send</template>
 
           <template #content>
@@ -97,7 +97,7 @@
           </template>
         </ExpandableButton>
 
-        <ExpandableButton>
+        <ExpandableButton @close="tapToRefreshBalance">
           <template #button_text>History</template>
 
           <template #content>
@@ -120,7 +120,7 @@
 
     <!-- Menu Dialog -->
     <TransitionRoot appear :show="isMenuOpen" as="template">
-      <Dialog as="div" @close="isMenuOpen = false" class="relative z-50">
+      <Dialog as="div" @close="handleMenuClose" class="relative z-50">
         <TransitionChild
           as="template"
           enter="duration-300 ease-out"
@@ -173,9 +173,16 @@
 
                   <button 
                     @click="handleCheckUpdate" 
-                    class="text-black underline font-bold text-xl p-3 py-6 w-full"
+                    :disabled="isUpdating"
+                    class="text-black underline font-bold text-xl p-3 py-6 w-full flex items-center justify-center gap-2"
                   >
-                    Check for Updates
+                    <template v-if="!isUpdating">
+                      Force Update
+                    </template>
+                    <template v-else>
+                      <iconify-icon class="text-2xl animate-spin" icon="pixelarticons:loader" />
+                      Updating...
+                    </template>
                   </button>
 
                   <button 
@@ -189,11 +196,11 @@
 
                 <div class="w-full p-4">
                   <button 
-              @click="isMenuOpen = false" 
-              class="bg-red-600 text-white p-4 w-full max-w-md mt-4 rounded-2xl text-xl font-bold"
-            >
-              Close
-            </button>
+                    @click="handleMenuClose" 
+                    class="bg-red-600 text-white p-4 w-full max-w-md mt-4 rounded-2xl text-xl font-bold"
+                  >
+                    Close
+                  </button>
                 </div>
 
 
@@ -241,6 +248,7 @@ const isFreshLogin = ref(false);
 
 const isRefreshing = ref(false);
 const isLoading = ref(true);
+const isUpdating = ref(false);
 
 onMounted(async () => {
   /// get face embedding from local storage
@@ -468,11 +476,13 @@ const updateSW = registerSW({
 
 const handleCheckUpdate = async () => {
   if (updateSW) {
-    await updateSW()
-    alert('Updated')
+    isUpdating.value = true;
+    await updateSW();
+    // The app will reload automatically after update
     window.location.reload();
   }
-  // isMenuOpen.value = false
+
+  isUpdating.value = false;
 }
 
 const handleLockWallet = () => {
@@ -485,6 +495,13 @@ const handleLockWallet = () => {
 const tapToRefreshBalance = async () => {
   if (!isLoading.value) {
     await getBalance();
+  }
+}
+
+const handleMenuClose = () => {
+  isMenuOpen.value = false;
+  if (!isLoading.value) {
+    tapToRefreshBalance();
   }
 }
 

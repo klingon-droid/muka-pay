@@ -56,6 +56,8 @@ const cachedTop = ref(0);
 
 const content = ref(null);
 
+const emit = defineEmits(['close']);
+
 const clickHandler = (event) => {
   const buttonRect = buttonText.value.getBoundingClientRect();
   console.log(buttonRect);
@@ -94,6 +96,9 @@ const clickHandler = (event) => {
       duration: 300,
       easing: "linear",
     });
+
+    // Emit close event when button is closed
+    emit('close');
   }
 };
 </script>
