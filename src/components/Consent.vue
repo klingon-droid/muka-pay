@@ -1,5 +1,5 @@
 <template>
-  <main class="w-screen h-screen font-lexend flex flex-col justify-between overflow-hidden bg-gray-50/50">
+  <main class="w-[100dvw] h-[100dvh] font-lexend flex flex-col justify-between overflow-hidden bg-gray-50/50 pb-6">
     <!-- Top section with logo and title -->
     <div class="w-full flex justify-center items-center flex-col pt-12">
       <!-- <div 
