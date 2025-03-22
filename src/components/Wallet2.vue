@@ -158,6 +158,13 @@
                   >
                     Delete Account
                   </button>
+
+                  <button 
+                    @click="handleCheckUpdate" 
+                    class="text-black underline font-bold text-xl p-3 py-6 w-full"
+                  >
+                    Check for Updates
+                  </button>
                 </div>
 
 
@@ -191,6 +198,7 @@ import SendDialog from "./SendDialog.vue";
 import { useStore } from "@nanostores/vue";
 import ExpandableButton from "./ExpandableButton.vue";
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
+import { registerSW } from 'virtual:pwa-register'
 
 import Gate2 from "./Gate2.vue";
 
@@ -411,6 +419,25 @@ const handleRegisterSuccess = (username) => {
   currentUsername.value = username;
   isLocked.value = false;
   getBalance();
+}
+
+const updateSW = registerSW({
+  onNeedRefresh() {
+    if (confirm('New content available. Reload?')) {
+      updateSW(true)
+    }
+  },
+  onOfflineReady() {
+    console.log('App ready to work offline')
+  }
+})
+
+const handleCheckUpdate = async () => {
+  if (updateSW) {
+    await updateSW()
+  }
+  // isMenuOpen.value = false
+  alert('Updated')
 }
 
 </script>
