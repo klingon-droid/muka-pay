@@ -1,6 +1,6 @@
 <template>
     <TransitionRoot :show="isOpen" as="template">
-        <Dialog as="div" @close="$emit('close')" class="relative z-50">
+        <Dialog as="div" @close="$emit('close')" class="relative z-[9999]">
             <TransitionChild
                 as="template"
                 enter="duration-300 ease-out"

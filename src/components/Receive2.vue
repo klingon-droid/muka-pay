@@ -141,12 +141,15 @@
             </template>
 
         </div>
+
+        <Teleport to="body">
+            <PatternSignDialog 
+                :is-open="showPatternDialog"
+                @close="showPatternDialog = false"
+                @pattern-complete="handlePatternComplete"
+            />
+        </Teleport>
         
-        <PatternSignDialog 
-            :is-open="showPatternDialog"
-            @close="showPatternDialog = false"
-            @pattern-complete="handlePatternComplete"
-        />
     </div>
 </template>
 

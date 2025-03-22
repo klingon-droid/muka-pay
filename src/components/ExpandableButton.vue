@@ -10,7 +10,7 @@
       <div ref="expander" class="absolute bg-black h-[1px] w-[1px]" :style="expanderStyle"></div>
     </div>
 
-    <main ref="content" :class="[expanded ? 'pointer-events-auto scale-100 opacity-100 delay-100 duration-300 z-[9999] bg-black' : 'pointer-events-none scale-[0.5] opacity-0 duration-200 ', 'transition-all  fixed h-screen w-screen top-0 left-0 ']">
+    <main ref="content" :class="[expanded ? 'pointer-events-auto scale-100 opacity-100 delay-100 duration-300 z-[999] bg-black' : 'pointer-events-none scale-[0.5] opacity-0 duration-200 ', 'transition-all  fixed h-screen w-screen top-0 left-0 ']">
       <nav class="absolute top-0 left-0 w-full flex justify-start items-center pointer-events-none p-4">
         <button class="bg-white rounded-full text-lg p-2 px-4 pointer-events-auto" @click="clickHandler">close</button>
       </nav>
