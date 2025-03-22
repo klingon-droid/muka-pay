@@ -1,6 +1,6 @@
 <template>
-  <div class="flex justify-center items-center relative w-full">
-    <div :class="[expanded ? 'opacity-0 pointer-events-none duration-300' : 'opacity-100 pointer-events-auto ']" @click="clickHandler" class="text-white text-3xl z-50 bg-black rounded-full h-18 flex justify-center items-center w-full max-w-sm pointer-events-auto">
+  <div class="flex justify-center items-center relative w-full px-4">
+    <div :class="[expanded ? 'opacity-0 pointer-events-none duration-300' : 'opacity-100 pointer-events-auto ']" @click="clickHandler" class="text-white text-3xl z-50 bg-black rounded-full h-18 flex justify-center items-center w-full pointer-events-auto">
       <div ref="buttonText">
         <slot name="button_text"></slot>
       </div>

@@ -5,7 +5,7 @@
       <template v-if="isFreshLogin">
 
 
-        <Gate2 @login-success="handleLoginSuccess" />
+        <Gate2 @login-success="handleLoginSuccess" @register-success="handleRegisterSuccess" />
 
       </template>
 
@@ -56,7 +56,7 @@
         <h1 class="text-9xl font-doto">{{ usdcBalance }}</h1>
       </div>
 
-      <div class="flex flex-col gap-1 w-full mb-4">
+      <div class="flex flex-col gap-1 w-full mb-8">
         <!-- <button @click="isSendDialogOpen = true" class="bg-black text-white font-bold text-xl p-4 py-6 rounded-full w-full">Send</button> -->
 
         <ExpandableButton :button-id="'receive'">
@@ -315,6 +315,9 @@ const getBalance = async () => {
   const data = await response.json();
   console.log("balance data:", data);
   usdcBalance.value = data.balance / 1e6;
+  if(Number.isNaN(usdcBalance.value)) {
+    usdcBalance.value = 0;
+  }
 };
 
 const gotoReceive = () => {
@@ -399,6 +402,13 @@ const handleLoginSuccess = (username) => {
     currentUsername.value = username;
     isLocked.value = false;
     getBalance();
+}
+
+const handleRegisterSuccess = (username) => {
+  setUsername(username);
+  currentUsername.value = username;
+  isLocked.value = false;
+  getBalance();
 }
 
 </script>

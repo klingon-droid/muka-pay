@@ -169,7 +169,6 @@
                     <div v-if="!isNewFaceEmbeddingGenerated" class="text-center">
                         <p class="text-2xl font-bold mb-2">Hold Still</p>
                         <p>Generating your face signature</p>
-                        <p>Info: {{ captureInfo }}</p>
                     </div>
     
                     <div :class="[isNewFaceEmbeddingGenerated?'opacity-100':'opacity-0', 'text-center']">
@@ -731,10 +730,12 @@
 
             // If we have enough samples, finish capture
             if (capturedFrames.value.length >= 5) {
+                captureInfo.value = "Capture complete! Registering your account...";
                 finishCapture()
             }
         } catch (error) {
             console.error('Error processing face capture:', error)
+            captureInfo.value = "Error capturing face. Please try again."
         }
     }
 
@@ -842,7 +843,9 @@
 
         // we need to store the user cred so next time come in no need login
 
-        window.location.href = '/app';
+        // window.location.href = '/app';
+        closeGate();
+        emit('register-success', username.value);
     }
 
     const handleExistingUserLogin = async (pattern) => {
