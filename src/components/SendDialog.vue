@@ -111,8 +111,7 @@
                                 
                                 <p class="text-xl font-bold mb-2">Provide your Secret Pattern to Proceed</p>
 
-                                <PatternPad2 ref="patternPadRef" 
-                                @pattern-complete="handlePatternComplete"/>
+                                <PatternPad2 ref="patternPadRef" @pattern-complete="handlePatternComplete"/>
                             </div>
                         </div>
 
@@ -170,7 +169,10 @@
 import { ref, defineProps, defineEmits, computed } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue'
 import PatternPad2 from './PatternPad2.vue'
+import { generateProof, getUsernameHash } from '../stores/user'
+import { parseUnits } from 'viem'
 
+const patternPad = ref(null)
 const props = defineProps({
     isOpen: {
         type: Boolean,
@@ -185,6 +187,9 @@ const currentStep = ref(0)
 const recipientType = ref('username') // 'username' or 'ethereum'
 const recipient = ref('')
 const amount = ref('')
+
+const payerUsername = ref('yf')
+
 
 // Computed properties
 const isValidForm = computed(() => {
@@ -213,18 +218,52 @@ const handleSend = () => {
     currentStep.value = 2
 }
 
-const handlePatternComplete = (pattern) => {
+const handlePatternComplete = async (pattern) => {
     console.log('Pattern complete:', pattern)
     currentStep.value = 3
 
-    // dummy delay
-    setTimeout(() => {
-        // dummy success
-        // currentStep.value = 4
+    const proof = await generateProof(payerUsername.value, pattern)
+    console.log('proof:', proof)
 
-        // dummy error
+    try {
+
+        console.log('amount:', amount.value)
+        console.log('recipient:', recipient.value)
+
+        const payload = {
+            "payment_proof": proof,
+            "amount": parseUnits(String(amount.value), 6).toString(),
+            "from_hash": await getUsernameHash(payerUsername.value),
+            "to_hash": await getUsernameHash(recipient.value),
+        }
+        console.log('payload:', payload)
+
+        const response = await fetch('/api/pay', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+
+        if (!response.ok) {
+            currentStep.value = 5
+        } else {
+            const data = await response.json()
+            console.log('Payment response:', data)
+            currentStep.value = 4
+        }
+        
+    } catch (error) {
+        console.error('Error paying:', error)
         currentStep.value = 5
-    }, 3000)
+    }
+
+    // // dummy delay
+    // setTimeout(() => {
+    //     // dummy success
+    //     // currentStep.value = 4
+
+    //     // dummy error
+    //     currentStep.value = 5
+    // }, 3000)
 }
 
 const resetForm = () => {

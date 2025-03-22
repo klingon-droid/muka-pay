@@ -7,7 +7,7 @@ export async function POST({ request }) {
   console.log('payload-', payload)
   
   try {
-    const response = await fetch(`https://mukapay-api.fly.dev//api/pay`, {
+    const response = await fetch(`https://mukapay-api.fly.dev/api/pay`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
