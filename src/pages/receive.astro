@@ -1,9 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import ReceiveVue from '../components/Receive.vue';
+// import ReceiveVue from '../components/Receive.vue';
+import Receive2 from '../components/Receive2.vue';
 ---
 
 <Layout>
+    <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+    </head>
 
     <script>
         import { Buffer } from "buffer";
@@ -11,7 +17,8 @@ import ReceiveVue from '../components/Receive.vue';
         if (typeof window !== "undefined") {
           window.Buffer = Buffer;
         }
-      </script>
-      
-    <ReceiveVue client:only="vue" />
+    </script>
+
+    <!-- <ReceiveVue client:only="vue" /> -->
+    <Receive2 client:only="vue" />
 </Layout> 
