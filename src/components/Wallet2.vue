@@ -10,7 +10,7 @@
       </template>
 
       <template v-else>
-        <div class="bg-black w-full h-full rounded-xl">
+        <div class="bg-black w-full h-[95vh] rounded-xl">
           <div class="w-full h-full flex justify-center items-center p-8 flex-col">
             <div class="w-full text-center space-y-2">
               <p class="text-2xl font-doto text-white">Account Locked</p>
@@ -444,9 +444,10 @@ const updateSW = registerSW({
 const handleCheckUpdate = async () => {
   if (updateSW) {
     await updateSW()
+    alert('Updated')
+    window.location.reload();
   }
   // isMenuOpen.value = false
-  alert('Updated')
 }
 
 const handleLockWallet = () => {
