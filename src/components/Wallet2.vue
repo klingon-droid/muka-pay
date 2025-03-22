@@ -21,8 +21,13 @@
     </template>
 
     <template v-else>
-      <div class="w-full grid grid-cols-[2rem_1fr_2rem] justify-center items-center p-4">
-        <div></div>
+      <div class="w-full grid grid-cols-[1fr_4fr_1fr] justify-center items-center p-4">
+        <div class="w-full flex justify-start items-center">
+
+          <!-- <div class=" text-black font-doto flex justify-center items-center text-xl">SnapPay</div> -->
+
+
+        </div>
         <div class="w-full flex justify-center items-center relative">
 
           <div class="bg-blue-500/50 -mt-[12rem] w-[20rem] h-[20rem] absolute rounded-full blur-[5rem] z-10"></div>
@@ -30,8 +35,8 @@
           <p class="text-4xl font-doto text-center w-full z-20 text-blue-500">@{{ currentUsername }}</p>
         </div>
         <div class="w-full flex justify-end items-center">
-          <button @click="deletePineconeRecord(matchedEmbedding.id)">
-            <iconify-icon icon="mdi:hamburger-menu" class="text-2xl" />
+          <button @click="isMenuOpen = true">
+            <iconify-icon icon="mdi:hamburger-menu" class="text-3xl" />
           </button>
         </div>
       </div>
@@ -88,6 +93,80 @@
 
     <!-- Use the imported HistoryDialog component -->
     <HistoryDialog :is-open="isHistoryDialogOpen" @close="isHistoryDialogOpen = false" />
+
+    <!-- Menu Dialog -->
+    <TransitionRoot appear :show="isMenuOpen" as="template">
+      <Dialog as="div" @close="isMenuOpen = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4 text-center flex-col">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
+                
+
+                <div class="text-center py-22">
+                  <div class="mb-6">
+                    <span class="text-2xl font-lexend">Hey, </span>
+                    <span class="text-3xl font-doto">@{{ currentUsername }}</span>
+                  </div>
+
+                  <p class="text-lg text-gray-500">Things in here are quite spicy, be careful!</p>
+                </div>
+
+                <div class="flex flex-col space-y-2 divide-y divide-gray-500 border-y border-gray-500">
+                  <button 
+                    @click="handleLogout" 
+                    class="text-black font-bold text-xl p-3 py-6 w-full underline"
+                  >
+                    Logout
+                  </button>
+                  
+                  <button 
+                    @click="handleDeleteAccount" 
+                    class=" text-black underline font-bold text-xl p-3 py-6 w-full"
+                  >
+                    Delete Account
+                  </button>
+                </div>
+
+
+                <div class="w-full p-4">
+                  <button 
+              @click="isMenuOpen = false" 
+              class="bg-red-600 text-white p-4 w-full max-w-md mt-4 rounded-2xl text-xl font-bold"
+            >
+              Close
+            </button>
+                </div>
+
+
+              </DialogPanel>
+            </TransitionChild>
+            
+            
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
@@ -99,12 +178,15 @@ import HistoryDialog from "./HistoryDialog.vue";
 import SendDialog from "./SendDialog.vue";
 import { useStore } from "@nanostores/vue";
 import ExpandableButton from "./ExpandableButton.vue";
+import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
+
 const isLocked = ref(true);
 const matchedEmbedding = ref(null);
 const currentUsername = ref(null);
 const usdcBalance = ref(0);
 const isSendDialogOpen = ref(false);
 const isHistoryDialogOpen = ref(false);
+const isMenuOpen = ref(false);
 const patternPadRef = ref(null);
 
 const refreshBalanceStore = useStore(refreshBalance);
@@ -259,12 +341,32 @@ async function deletePineconeRecord(id) {
     }
 }
 
-
 const deleteLocalStorage = () => {
   localStorage.removeItem('mukapay-face');
   window.location.reload();
 }
 
+const handleLogout = () => {
+
+  let answer = confirm('Are you sure you want to logout?')
+  if(!answer) return;
+
+  isMenuOpen.value = false;
+  isLocked.value = true;
+}
+
+const handleDeleteAccount = async () => {
+
+  let answer = confirm('Are you sure you want to delete your account?')
+  if(!answer) return;
+
+  if (matchedEmbedding.value && matchedEmbedding.value.id) {
+    await deletePineconeRecord(matchedEmbedding.value.id);
+  } else {
+    deleteLocalStorage();
+  }
+  isMenuOpen.value = false;
+}
 </script>
 
 <style>
