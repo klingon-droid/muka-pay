@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-screen overflow-y-auto">
+  <div class="w-full h-full overflow-y-auto">
     
     <nav class="w-full text-center text-white mt-22 p-6 font-doto text-4xl">
         History
