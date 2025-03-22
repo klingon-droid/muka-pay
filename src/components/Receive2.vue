@@ -158,7 +158,7 @@ import { ref, onMounted, onBeforeUnmount, onUnmounted } from 'vue';
 import Eyecon from './Eyecon.vue';
 import PatternSignDialog from './PatternSignDialog.vue';
 import { parseUnits } from 'viem';
-import { generateProof, getUsernameHash, refreshBalance } from '../stores/user'
+import { generateProof, getUsernameHash, refreshBalance, username } from '../stores/user'
 
 import { Human } from '@vladmandic/human'
 // Initialize Human with proper configuration
@@ -193,6 +193,9 @@ const human = new Human({
 })
 const FACE_SIZE_THRESHOLD = 0.5 // Face should take up at least 30% of the video width
 
+onMounted(() => {
+    recipientUsername.value = username.value;
+})
 
 const isEditMode = ref(true);
 const amount = ref('');
@@ -207,7 +210,7 @@ const submitBusy = ref(false);
 
 const submitSuccess = ref(false);
 
-const recipientUsername = ref('yongfeng');
+const recipientUsername = ref(null);
 const captureInfo = ref('');
 const isFlipped = ref(true);
 const videoRef = ref(null);
@@ -469,6 +472,12 @@ const handlePatternComplete = async (pattern) => {
             const paymentSuccess = await handlePay()
             if(paymentSuccess){
                 submitSuccess.value = true;
+
+                setTimeout(() => {
+                    document.getElementById(`close-receive`).click();
+                    resetReceive();
+                }, 5000);
+
             }else{
                 submitSuccess.value = false;
             }
@@ -534,13 +543,16 @@ const handleEdit = () => {
 }
 
 const handleSignOutAndCancel = () => {
-    isVerified.value = false;
-    accountFound.value = false;
-    isDetectingFace.value = true
-    isEditMode.value = true
-    videoRef.value = null;
-    clearInterval(detectInterval)
-    amount.value = ''
+    // isVerified.value = false;
+    // accountFound.value = false;
+    // isDetectingFace.value = true
+    // isEditMode.value = true
+    // videoRef.value = null;
+    // clearInterval(detectInterval)
+    // amount.value = ''
+
+    document.getElementById(`close-receive`).click();
+    resetReceive();
 
 }
 
@@ -550,6 +562,16 @@ const clickDialog = () => {
 }
 
 const resetReceive = () => {
+
+    // Stop all video tracks from the stream
+    if (videoRef.value && videoRef.value.srcObject) {
+        console.log('stopping video tracks')
+        const tracks = videoRef.value.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        videoRef.value.srcObject = null;
+        console.log('video tracks stopped')
+    }
+
     isVerified.value = false;
     accountFound.value = false;
     isDetectingFace.value = true

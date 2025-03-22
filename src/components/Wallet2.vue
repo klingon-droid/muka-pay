@@ -59,7 +59,7 @@
       <div class="flex flex-col gap-1 w-full mb-4">
         <!-- <button @click="isSendDialogOpen = true" class="bg-black text-white font-bold text-xl p-4 py-6 rounded-full w-full">Send</button> -->
 
-        <ExpandableButton>
+        <ExpandableButton :button-id="'receive'">
           <template #button_text>Receive</template>
 
           <template #content>
