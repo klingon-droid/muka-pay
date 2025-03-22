@@ -42,6 +42,7 @@
     <!-- Bottom section with button -->
     <div class="w-full text-center p-5">
       <button 
+        @click="handleConsent"
         class="bg-black text-white py-3 px-6 text-base rounded-lg flex items-center justify-center w-full max-w-sm mx-auto shadow-md hover:bg-gray-900 transition-all active:scale-98 duration-200"
       >
         <span class="mr-2">I Understand & Agree</span>
@@ -61,6 +62,11 @@ onMounted(() => {
   // Add fade-in animation when component mounts
   document.querySelector('main').classList.add('animate-fade-in');
 });
+
+const handleConsent = () => {
+  localStorage.setItem('mukapay-consent', 'true');
+  window.location.href = '/';
+}
 </script>
 
 <style>

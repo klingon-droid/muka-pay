@@ -1,12 +1,13 @@
 ---
 // import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-import App from '../components/App.vue';
-import Gate from '../components/Gate.vue';
-import Gate2 from '../components/Gate2.vue';
-import Consent from '../components/Consent.vue';
+// import App from '../components/App.vue';
+// import Gate from '../components/Gate.vue';
+// import Gate2 from '../components/Gate2.vue';
+// import Consent from '../components/Consent.vue';
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Wallet2 from '../components/Wallet2.vue';
 ---
 
 <Layout>
@@ -23,9 +24,15 @@ import Consent from '../components/Consent.vue';
 		if (typeof window !== "undefined") {
 		  window.Buffer = Buffer;
 		}
+
+		// check local storage for mukapay-consent
+		if (!localStorage.getItem('mukapay-consent')) {
+			window.location.href = '/consent';
+		}
+
 	  </script>
 	<!-- <App client:only="vue" /> -->
 	 <!-- <Gate client:only="vue" /> -->
-	 <Gate2 client:only="vue" />
+	 <Wallet2 client:only="vue" />
 	 <!-- <Consent client:only="vue" /> -->
 </Layout>

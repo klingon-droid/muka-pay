@@ -1,7 +1,5 @@
 ---
 import Layout from "../layouts/Layout.astro";
-// import Wallet from "../components/Wallet.vue";
-import Wallet2 from "../components/Wallet2.vue";
 ---
 
 <Layout>
@@ -13,13 +11,10 @@ import Wallet2 from "../components/Wallet2.vue";
   </head>
 
   <script>
-    import { Buffer } from "buffer";
 
-    if (typeof window !== "undefined") {
-      window.Buffer = Buffer;
-    }
+    window.location.href = '/';
   </script>
 
   <!-- <Wallet client:only="vue" /> -->
-  <Wallet2 client:only="vue" />
+  <!-- <Wallet2 client:only="vue" /> -->
 </Layout>
