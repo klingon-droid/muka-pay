@@ -25,7 +25,7 @@
                     <div>
                         <p class=" text-white">
                             {{ transaction.type === 'send' ? 'To' : 'From' }}
-                            <span class="font-doto text-xl ml-2">@{{ transaction.counterparty }}</span>
+                            <span class="font-doto text-xl ml-2">{{ isAddress(transaction.counterparty) ? transaction.counterparty.slice(0, 6) + '...' + transaction.counterparty.slice(-4) : '@' + transaction.counterparty.slice(0, 6) + '...' + transaction.counterparty.slice(-4) }}</span>
                         </p>
                         <p class="text-sm text-white/30">{{ formatDate(transaction.date) }}</p>
                     </div>
@@ -45,42 +45,75 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue';
+    import { ref, onMounted } from 'vue';
+    const currentUsername = ref(null);
+    import { username, getUsernameHash } from '../stores/user';
+    import { formatUnits, isAddress } from 'viem';
 
-    const transactions = ref([
-        {
-            id: 1,
-            type: 'send',
-            counterparty: 'alice',
-            amount: '10.00',
-            date: '2024-03-20T10:30:00Z'
-        },
-        {
-            id: 2,
-            type: 'receive',
-            counterparty: 'bob',
-            amount: '25.50',
-            date: '2024-03-19T15:45:00Z'
-        },
-        {
-            id: 3,
-            type: 'send',
-            counterparty: 'charlie',
-            amount: '5.00',
-            date: '2024-03-18T09:15:00Z'
+    onMounted(async () => {
+        currentUsername.value = username.value;
+        // currentUsername.value = 'yongfeng';
+        const response = await fetch(`/api/history/${currentUsername.value}`);
+        const data = await response.json();
+        console.log('history data:', data);
+
+        const outTypes = ['paid', 'withdrawn']
+        const inTypes = ['deposited']
+
+        for(let history of data?.history) {
+            if(history.event === 'registered') {
+                continue;
+            }
+            transactions.value.push({
+                id: history.tx_hash,
+                tx_hash: history.tx_hash,
+                event: history.event,
+                type: outTypes.includes(history.event) ? 'send' : 'receive',
+                from_user: history?.from_user,
+                to_user: history?.to_user,
+                counterparty: (await getUsernameHash(currentUsername.value)) === history?.to_user ? history?.from_user : history?.to_user,
+                amount: formatUnits(String(history.amount), 6),
+                date: history.block_time
+            });
         }
-    ]);
+    })
 
-    // Add more sample transactions
-    for (let i = 0; i < 10; i++) {
-        transactions.value.push({
-            id: i + 4,
-            type: i % 2 === 0 ? 'send' : 'receive',
-            counterparty: i % 2 === 0 ? 'alice' : 'bob',
-            amount: ((i + 1) * 5).toFixed(2),
-            date: new Date(Date.now() - i * 86400000).toISOString()
-        });
-    }
+
+    const transactions = ref([]);
+    // const transactions = ref([
+    //     {
+    //         id: 1,
+    //         type: 'send',
+    //         counterparty: 'alice',
+    //         amount: '10.00',
+    //         date: '2024-03-20T10:30:00Z'
+    //     },
+    //     {
+    //         id: 2,
+    //         type: 'receive',
+    //         counterparty: 'bob',
+    //         amount: '25.50',
+    //         date: '2024-03-19T15:45:00Z'
+    //     },
+    //     {
+    //         id: 3,
+    //         type: 'send',
+    //         counterparty: 'charlie',
+    //         amount: '5.00',
+    //         date: '2024-03-18T09:15:00Z'
+    //     }
+    // ]);
+
+    // // Add more sample transactions
+    // for (let i = 0; i < 10; i++) {
+    //     transactions.value.push({
+    //         id: i + 4,
+    //         type: i % 2 === 0 ? 'send' : 'receive',
+    //         counterparty: i % 2 === 0 ? 'alice' : 'bob',
+    //         amount: ((i + 1) * 5).toFixed(2),
+    //         date: new Date(Date.now() - i * 86400000).toISOString()
+    //     });
+    // }
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
