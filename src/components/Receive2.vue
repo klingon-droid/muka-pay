@@ -101,16 +101,17 @@
             <template v-if="!submitSuccess">
 
                 <div v-if="accountFound && !isVerified" class="flex flex-col items-center gap-2">
-                    <button :disabled="submitBusy" @click="showPatternDialog = true" class="bg-white text-black py-2 px-4 pr-2 rounded-xl flex items-center gap-2 disabled:opacity-50">
-                            <p>Sign with Pattern</p>
-                            <iconify-icon class="text-4xl" icon="mage:dots-menu" />
+                    <button :disabled="submitBusy" @click="clickDialog()" class="pointer-events-auto bg-white text-black py-2 px-4 pr-2 rounded-xl flex items-center gap-2 disabled:opacity-50 hover:bg-white/90 active:bg-white/80 transition-colors">
+                        {{ submitBusy }}    
+                        <p>Sign with Pattern</p>
+                        <iconify-icon class="text-4xl" icon="mage:dots-menu" />
                     </button>
                 </div>
 
                 <div v-if="accountFound && isVerified" class="flex flex-col items-center gap-2">
                     
                     <div class="mb-12 text-center px-8">
-                        <p class="text-2xl font-bold mb-4">Hello @payer</p>
+                        <p class="text-2xl font-bold mb-4">Hello @{{ payerUsername }}</p>
                         <p class="text-red-500">This is the final step.<br>Sign again to confirm.</p>
                     </div>
 
@@ -431,7 +432,16 @@ const firstPin = ref(null);
 const handlePatternComplete = async (pattern) => {
 
     if(!isVerified.value){
-        isVerified.value = true;
+
+        const decryptedUsername = await decryptMetadata(payerEmbedding.value.metadata.username, pattern)
+        console.log('decryptedUsername:', decryptedUsername);
+
+        if(decryptedUsername) {
+            payerUsername.value = decryptedUsername
+            payerPattern.value = pattern
+            clearInterval(detectInterval)
+            isVerified.value = true;
+        }
         firstPin.value = pattern;
     }else{
 
@@ -528,6 +538,11 @@ const handleSignOutAndCancel = () => {
     clearInterval(detectInterval)
     amount.value = ''
 
+}
+
+const clickDialog = () => {
+    console.log('clickDialog')
+    showPatternDialog.value = true;
 }
 
 </script>

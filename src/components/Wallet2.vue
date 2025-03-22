@@ -15,7 +15,7 @@
         </div>
 
         <div>
-          <button class="bg-white text-black font-bold text-lg px-6 py-4 rounded-full w-full">Reset Account</button>
+          <button @click="deleteLocalStorage()" class="bg-white text-black font-bold text-lg px-6 py-4 rounded-full w-full">Reset Account</button>
         </div>
       </div>
     </template>
