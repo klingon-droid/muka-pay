@@ -20,7 +20,7 @@
       <div class="px-8 py-12 font-normal text-white/50 flex justify-between items-center space-x-4">
         <p>You can also open this page in your wallet app to deposit.</p>
 
-        <button @click="copyToClipboard" class=" bg-white text-black font-medium p-3 rounded-xl hover:bg-white/90 active:bg-white/80 transition-colors px-4 text-sm whitespace-nowrap">
+        <button @click="copyLink" class=" bg-white text-black font-medium p-3 rounded-xl hover:bg-white/90 active:bg-white/80 transition-colors px-4 text-sm whitespace-nowrap">
           Copy Link
         </button>
 
@@ -127,7 +127,7 @@
     const currentUsername = ref('');
     const inputAmount = ref(0);
 
-    import { wagmiConfig, walletAccount, ERC20_ABI, VAULT_CONTRACT_ADDRESS, USDC_CONTRACT_ADDRESS, getUsernameHash, VAULT_ABI } from '../stores/user'
+    import { wagmiConfig, walletAccount, ERC20_ABI, VAULT_CONTRACT_ADDRESS, USDC_CONTRACT_ADDRESS, getUsernameHash, VAULT_ABI, username } from '../stores/user'
     import { useStore } from '@nanostores/vue'
     import { getAccount, getConnectors, connect, disconnect, switchChain, reconnect, writeContract, waitForTransactionReceipt, readContract } from '@wagmi/core'
     import { baseSepolia } from 'wagmi/chains'
@@ -136,7 +136,7 @@
 
     onMounted(() => {
         const urlParams = new URLSearchParams(window.location.search);
-        currentUsername.value = urlParams.get('username') || 'dummy';
+        currentUsername.value = urlParams.get('username') || username.value;
         reconnect(wagmiConfig);
 
         const account = getAccount(wagmiConfig)
@@ -226,6 +226,7 @@
 
         } catch (error) {
             console.error('Error approving:', error)
+            alert(`Please approve the deposit first to proceed.`)
         }
     }
 
@@ -250,7 +251,13 @@
             })
 
             console.log('receipt:', receipt)
+
+
             // isDepositSufficient.value = receipt.status === 'success';
+
+            isAmountConfirmed.value = false;
+            isApprovalSufficient.value = false;
+            inputAmount.value = 0;
             alert('Deposit successful');
 
         } catch (error) {
@@ -260,7 +267,7 @@
 
 
     const copyLink = () => {
-        const link = window.location.href;
+        const link = `${window.location.origin}?username=${currentUsername.value}`;
         navigator.clipboard.writeText(link);
         alert('Link copied to clipboard');
     }

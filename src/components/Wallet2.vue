@@ -67,7 +67,7 @@
           </template>
         </ExpandableButton>
 
-        <ExpandableButton>
+        <ExpandableButton :button-id="'deposit'">
           <template #button_text>Deposit</template>
 
           <template #content>
