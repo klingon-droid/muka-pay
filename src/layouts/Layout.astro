@@ -6,28 +6,40 @@ import { pwaInfo } from 'virtual:pwa-info';
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
+		<!-- <meta name="viewport" content="width=device-width" /> -->
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Face Recognition System</title>
 		<script type="module" src="https://cdn.jsdelivr.net/npm/@vladmandic/human@3.2.0/dist/human.esm.min.js"></script>
 		<script src="/src/pwa.ts" type="module"></script>
 		{ pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} /> }
+		<meta name="viewport" content="initial-scale=1, viewport-fit=cover, width=device-width">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
 	</head>
 	<body>
 		<script>
 			import 'iconify-icon';
 		</script>
 		<slot />
+
+		<style>
+			body {
+				margin: 0;
+				width: 100%;
+				height: 100%;
+			}
+		
+			html {
+		  min-height: calc(100% + env(safe-area-inset-top));
+		  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+		  /* Add other styles as needed */
+		}
+		
+		</style>
+
+
 	</body>
 </html>
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
 

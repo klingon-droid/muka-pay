@@ -1,5 +1,5 @@
 <template>
-  <div :class="[isLocked ? (isFreshLogin ? 'bg-white' : 'bg-black') : 'grid grid-cols-1 grid-rows-[auto_1fr_auto]']" class="w-full h-screen font-lexend safe-top safe-bottom">
+  <div :class="[isLocked ? (isFreshLogin ? 'bg-white' : 'bg-black') : 'grid grid-cols-1 grid-rows-[auto_1fr_auto]']" class="w-full h-screen font-lexend">
     <template v-if="isLocked">
 
       <template v-if="isFreshLogin">
@@ -428,13 +428,5 @@ const handleRegisterSuccess = (username) => {
   font-weight: 600;
   font-style: normal;
   font-variation-settings: "wdth" 100;
-}
-
-.safe-top {
-  padding-top: env(safe-area-inset-top);
-}
-
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
 }
 </style>

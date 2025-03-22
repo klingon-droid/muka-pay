@@ -54,7 +54,8 @@ export default defineConfig({
         name: 'Snap Pay',
         short_name: 'Snap Pay',
         description: 'Secure on-chain payments with face recognition',
-        theme_color: '#ffffff',
+        theme_color: '#2E483D',
+        background_color: '#3B82F6',
         icons: [
           {
             src: 'pwa-192x192.png',
