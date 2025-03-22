@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "wrangler pages dev ./dist --ip 0.0.0.0",
     "astro": "astro"
   },
   "dependencies": {
@@ -31,5 +31,11 @@
     "viem": "^2.23.13",
     "vue": "^3.5.13",
     "wagmi": "^2.14.15"
+  },
+  "devDependencies": {
+    "@vite-pwa/astro": "^0.5.0",
+    "sharp": "^0.33.5",
+    "wrangler": "^4.3.0",
+    "workbox-window": "^7.3.0"
   }
 }
