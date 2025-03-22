@@ -6,11 +6,11 @@
       </div>
     </div>
 
-    <div class="w-screen h-screen flex justify-center items-center fixed top-0 left-0 pointer-events-none">
+    <div class="w-screen h-[100dvh] flex justify-center items-center fixed top-0 left-0 pointer-events-none">
       <div ref="expander" class="absolute bg-white h-[1px] w-[1px]" :style="expanderStyle"></div>
     </div>
 
-    <main ref="content" :class="[expanded ? 'pointer-events-auto scale-100 opacity-100 delay-100 duration-300 z-[999] p-2' : 'pointer-events-none scale-[0.5] opacity-0 duration-200 ', 'transition-all  fixed h-[100dvh] w-[100dvw] top-0 left-0  ']">
+    <main ref="content" :class="[expanded ? 'pointer-events-auto scale-100 opacity-100 delay-100 duration-300 z-[999] p-2' : 'pointer-events-none scale-[0.5] opacity-0 duration-200 ', 'transition-all  fixed h-[95dvh] w-[100dvw] top-0 left-0  ']">
       <nav class="absolute top-0 left-0 w-full flex justify-start items-center pointer-events-none p-6 bg-gradient-to-b">
 
         
