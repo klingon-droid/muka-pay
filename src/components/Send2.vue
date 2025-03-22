@@ -198,7 +198,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useEventBus } from '@vueuse/core'
 import { generateProof, username, refreshBalance, getUsernameHash } from '../stores/user';
-import { parseUnits } from 'viem';
+import { parseUnits, isAddress } from 'viem';
 
 const isSending = ref(false);
 const eventBus = useEventBus('expButton');
@@ -239,6 +239,13 @@ const goToRecipientStep = () => {
 
 const submitReceipient = () => {
   if (!amount.value || !selectedType.value) return;
+
+  if(selectedType.value === 'ethereum') {
+    if(!isAddress(recipient.value)) {
+      alert('Invalid ethereum address');
+      return;
+    }
+  }
   currentStep.value = 'summary';
 };
 
