@@ -91,7 +91,7 @@ const isSendDialogOpen = ref(false)
 const isHistoryDialogOpen = ref(false)
 const usdcBalance = ref(0);
 // const currentUsername = useStore(username)
-const currentUsername = 'bukamuka'
+const currentUsername = 'yf'
 
 const handleSendPayment = (payment) => {
     // Implement payment logic here
@@ -105,30 +105,10 @@ onMounted( async () => {
 
 
 const getBalance = async () => {
-
-
     const response = await fetch(`${window.location.origin}/api/balance/${currentUsername}`);
     const data = await response.json();
     console.log('balance data:', data);
     usdcBalance.value = data.balance / 1e6;
-
-    // await fetch(`https://mukapay-api.fly.dev/api/users/${currentUsername}/balance`, {
-    //     method: 'GET',
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //         'Accept': 'application/json'
-    //     }
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     console.log('balance data:', data);
-    //     usdcBalance.value = data.balance / 1e6;
-    // })
-    // .catch(error => {
-    //     console.error('Error fetching balance:', error);
-    // });
-    // usdcBalance.value = 12.34;
-    // return usdcBalance.value;
 }
 
 const gotoReceive = () => {
