@@ -165,6 +165,13 @@
                   >
                     Check for Updates
                   </button>
+
+                  <button 
+                    @click="handleLockWallet" 
+                    class="text-black underline font-bold text-xl p-3 py-6 w-full"
+                  >
+                    Lock Wallet
+                  </button>
                 </div>
 
 
@@ -227,9 +234,7 @@ onMounted(() => {
     isFreshLogin.value = false;
     matchedEmbedding.value = JSON.parse(faceEmbedding);
   } else {
-
     isFreshLogin.value = true;
-
   }
 
   // Watch the store value
@@ -239,6 +244,10 @@ onMounted(() => {
       getBalance();
     }
   });
+
+  // Emit mounted event
+  const event = new Event('vue-mounted');
+  document.dispatchEvent(event);
 });
 
 // Add these helper functions at the top of your script section
@@ -438,6 +447,13 @@ const handleCheckUpdate = async () => {
   }
   // isMenuOpen.value = false
   alert('Updated')
+}
+
+const handleLockWallet = () => {
+  isMenuOpen.value = false;
+  isLocked.value = true;
+  isFreshLogin.value = false;
+  patternPadRef.value?.clearPattern();
 }
 
 </script>
