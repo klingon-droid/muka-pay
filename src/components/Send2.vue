@@ -324,7 +324,7 @@ const handleWithdraw = async(_proof) => {
     const payload = {
         "proof": _proof,
         "amount": parseUnits(String(amount.value), 6).toString(),
-        "to_hash": recipient.value,
+        "to_user_address": recipient.value,
     }
     console.log('payload:', payload)
 

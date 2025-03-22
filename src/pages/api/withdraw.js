@@ -3,9 +3,9 @@ export const prerender = false;
 import { refreshBalance } from '../../stores/user';
 
 export async function POST({ request }) {
-    const { proof, amount, to_hash } = await request.json();
+    const { proof, amount, to_user_address } = await request.json();
   //   console.log('paymentData:', payment_proof, amount, from_hash, to_hash)
-    const payload = {proof, amount, to_username_hash:to_hash}
+    const payload = {proof, amount, to_user_address}
     console.log('payload-', payload)
   
     try {
