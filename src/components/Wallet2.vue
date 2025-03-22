@@ -55,11 +55,11 @@
           </template>
         </ExpandableButton>
 
-        <ExpandableButton>
+        <ExpandableButton :button-id="'send'">
           <template #button_text>Send</template>
 
           <template #content>
-            <Send2 />
+            <Send2  />
           </template>
         </ExpandableButton>
 

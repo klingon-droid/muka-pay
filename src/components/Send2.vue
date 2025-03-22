@@ -4,7 +4,7 @@
         Send
     </nav>
     
-    <div v-if="currentStep !== 'summary'" class="text-center space-y-8 text-white mt-22">
+    <div v-if="currentStep !== 'summary' && currentStep !== 'result'" class="text-center space-y-8 text-white mt-22">
       <div v-if="currentStep === 'amount'" class="text-5xl font-bold break-all flex justify-center items-center flex-wrap font-doto">
         <p v-if="amount">{{ amount }}</p>
         <p v-else class="text-white/20 whitespace-nowrap p-4">Enter amount</p>
@@ -110,11 +110,17 @@
     <div v-if="currentStep === 'summary'" class="w-full p-4 grid grid-rows-[1fr_auto]">
       
       <div class="w-full h-full flex flex-col justify-start items-center">
-        <div class="py-22">
+        <div class="py-22 text-center">
           <p class="text-white text-4xl">Going to send</p>  
 
-          <div class="flex flex-col">
-            0.00123
+          <div class="flex justify-center items-center flex-wrap space-x-4 py-12 font-doto">
+            <p class="text-5xl">123</p>
+            <p class="text-3xl text-white/50">Base USDC</p>
+          </div>
+
+          <div class="flex justify-center items-center flex-wrap space-x-4">
+            <div class="text-4xl">To</div>
+            <div class="ml-2 bg-white text-black py-2 px-4 rounded-full text-xl ">@Username</div>
           </div>
         </div>
 
@@ -123,20 +129,61 @@
       </div>
 
 
-      <div class="w-full grid grid-cols-2 gap-2">
+
+      <div class="w-full">
+
+        
+        <button @click="clickDialog()" class="pointer-events-auto bg-white text-black p-4 rounded-xl gap-2 disabled:opacity-50 hover:bg-white/90 active:bg-white/80 transition-colors w-full flex justify-center items-center text-xl mb-4">
+                        <p>Sign and Send</p>
+                        <iconify-icon class="text-4xl" icon="mage:dots-menu" />
+                    </button>
+
+        <Teleport to="body">
+            <PatternSignDialog 
+                :is-open="showPatternDialog"
+                @close="showPatternDialog = false"
+                @pattern-complete="handlePatternComplete"
+            />
+        </Teleport>
+
         <button 
           @click="goBackFromType"
           class="bg-white/10 text-white rounded-xl p-4 w-full text-lg hover:bg-white/10 active:bg-white/20 transition-colors"
         >
           Back
         </button>
-        <button 
-          @click="handleConfirm"
-          class="bg-white text-black rounded-xl p-4 w-full text-lg hover:bg-white/90 active:bg-white/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Confirm
+        
+      </div>
+    </div>
+
+    <div v-if="currentStep === 'result'" class="w-full h-full grid grid-rows-[1fr_auto]">
+
+      <div class="w-full h-full flex flex-col justify-center items-center">
+        <div class="py-22 text-center">
+          <p class="text-white text-4xl">Sent</p>  
+
+          <div class="flex justify-center items-center flex-wrap space-x-4 py-12 font-doto">
+            <p class="text-5xl">123</p>
+            <p class="text-3xl text-white/50">Base USDC</p>
+          </div>
+
+          <div class="flex justify-center items-center flex-wrap space-x-4">
+            <div class="text-4xl">To</div>
+            <div class="ml-2 bg-white text-black py-2 px-4 rounded-full text-xl ">@Username</div>
+          </div>
+        </div>
+
+        
+        
+      </div>
+
+      <div class="w-full p-4">
+        <button @click="done" class="bg-white text-black rounded-xl p-4 text-lg hover:bg-white/10 active:bg-white/20 transition-colors w-full">
+          <p>Done</p>
         </button>
       </div>
+
+
     </div>
     
   </div>
@@ -144,12 +191,17 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useEventBus } from '@vueuse/core'
 
+const eventBus = useEventBus('expButton');
 const amount = ref('');
 const recipient = ref('');
 const keypadKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '←'];
 const currentStep = ref('amount');
 const selectedType = ref('');
+const showPatternDialog = ref(false);
+
+import PatternSignDialog from './PatternSignDialog.vue';
 
 const handleKeyPress = (key) => {
   if (key === '←') {
@@ -195,6 +247,23 @@ const handleConfirm = () => {
   console.log('Sending', amount.value, 'USDC to', recipient.value, 'via', selectedType.value);
   // Add additional logic for confirming payment
 };
+
+const clickDialog = () => {
+    console.log('clickDialog')
+    showPatternDialog.value = true;
+}
+
+const handlePatternComplete = () => {
+    console.log('handlePatternComplete')
+    showPatternDialog.value = false;
+
+    currentStep.value = 'result';
+}
+
+const done = (event) => {
+  document.getElementById(`close-send`).click();
+}
+
 </script>
 
 <style>
