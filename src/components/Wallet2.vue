@@ -25,7 +25,7 @@
         <div></div>
         <p class="text-2xl font-doto text-center w-full">@{{ currentUsername }}</p>
         <div class="w-full flex justify-end items-center">
-          <button>
+          <button @click="deletePineconeRecord(matchedEmbedding.id)">
             <iconify-icon icon="mdi:hamburger-menu" class="text-2xl" />
           </button>
         </div>
@@ -216,6 +216,40 @@ const handleSendPayment = (payment) => {
     isSendDialogOpen.value = false
 }
 
+async function deletePineconeRecord(id) {
+
+  const answer = confirm('Are you sure you want to delete this record?')
+  if(!answer) return;
+  
+    try {
+        const response = await fetch('https://face4-ff60525.svc.aped-4627-b74a.pinecone.io/vectors/delete', {
+            method: 'POST',
+            headers: {
+                'Api-Key': 'pcsk_65jcaw_DxQsFPjgiuo5pTiYBsovpdYo7DsPALMLM5bKMzCxLgnm5rrWh8NxibVMDrCC8qG',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ids: [id]
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to delete: ${response.statusText}`);
+        }
+        deleteLocalStorage();
+        alert('Record deleted successfully')
+        return await response.json();
+    } catch (error) {
+        console.error('Error deleting Pinecone record:', error);
+        throw error;
+    }
+}
+
+
+const deleteLocalStorage = () => {
+  localStorage.removeItem('mukapay-face');
+  window.location.reload();
+}
 
 </script>
 
