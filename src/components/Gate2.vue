@@ -844,6 +844,8 @@
                     
                     // Store only the successful candidate for future use
                     localStorage.setItem('mukapay-face', JSON.stringify(candidate));
+
+                    closeGate();
                     
                     loginSuccessful = true;
                     clearInterval(detectInterval);
@@ -865,7 +867,16 @@
         }
     }
 
-
+    const closeGate = () => {
+        // Stop all video tracks from the stream
+        if (videoRef.value && videoRef.value.srcObject) {
+            console.log('stopping video tracks')
+            const tracks = videoRef.value.srcObject.getTracks();
+            tracks.forEach(track => track.stop());
+            videoRef.value.srcObject = null;
+            console.log('video tracks stopped')
+        }
+    }
 
     
     // Add these helper functions at the top of your script section

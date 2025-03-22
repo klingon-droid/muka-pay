@@ -47,7 +47,7 @@
 
                         </div>
 
-                        <button @click="$emit('close')" class="bg-red-600 text-white p-4 w-full mt-4 rounded-2xl text-xl font-bold">cancel</button>
+                        <button @click="$emit('close', 'cancel')" class="bg-red-600 text-white p-4 w-full mt-4 rounded-2xl text-xl font-bold">cancel</button>
                         
 
                     </DialogPanel>

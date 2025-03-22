@@ -42,7 +42,7 @@
       <div class="p-4 w-full pb-8">
         <button 
           @click="submitAmount"
-          :disabled="!amount"
+          :disabled="!amount || Number(amount) <= 0"
           class="bg-white text-black rounded-xl p-4 w-full text-lg hover:bg-white/90 active:bg-white/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next
@@ -133,21 +133,26 @@
       <div class="w-full">
 
         
-        <button @click="clickDialog()" class="pointer-events-auto bg-white text-black p-4 rounded-xl gap-2 disabled:opacity-50 hover:bg-white/90 active:bg-white/80 transition-colors w-full flex justify-center items-center text-xl mb-4">
-                        <p>Sign and Send</p>
-                        <iconify-icon class="text-4xl" icon="mage:dots-menu" />
-                    </button>
+        <button v-if="!isSending" @click="clickDialog()" class="pointer-events-auto bg-white text-black p-4 rounded-xl gap-2 disabled:opacity-50 hover:bg-white/90 active:bg-white/80 transition-colors w-full flex justify-center items-center text-xl mb-4">
+            <p>Sign and Send</p>
+            <iconify-icon class="text-4xl" icon="mage:dots-menu" />
+        </button>
+        <button v-if="isSending" class="pointer-events-auto bg-white text-black p-4 rounded-xl gap-2 disabled:opacity-50 hover:bg-white/90 active:bg-white/80 transition-colors w-full flex justify-center items-center text-xl mb-4">
+            <p>Signing...</p>
+            <iconify-icon class="text-4xl animate-[spin_3s]" icon="mage:dots-menu" />
+        </button>
 
         <Teleport to="body">
             <PatternSignDialog 
                 :is-open="showPatternDialog"
-                @close="showPatternDialog = false"
+                @close="closePatternDialog"
                 @pattern-complete="handlePatternComplete"
             />
         </Teleport>
 
         <button 
           @click="goBackFromType"
+          :disabled="isSending"
           class="bg-white/10 text-white rounded-xl p-4 w-full text-lg hover:bg-white/10 active:bg-white/20 transition-colors"
         >
           Back
@@ -190,11 +195,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useEventBus } from '@vueuse/core'
 import { generateProof, username, refreshBalance, getUsernameHash } from '../stores/user';
 import { parseUnits } from 'viem';
 
+const isSending = ref(false);
 const eventBus = useEventBus('expButton');
 const amount = ref('');
 const recipient = ref('');
@@ -218,7 +224,7 @@ const handleKeyPress = (key) => {
 };
 
 const submitAmount = () => {
-  if (!amount.value) return;
+  if (!amount.value || Number(amount.value) <= 0) return;
   currentStep.value = 'type';
 };
 
@@ -241,6 +247,7 @@ const goToAmountStep = () => {
 };
 
 const goBackFromType = () => {
+  if(isSending.value) return;
   currentStep.value = 'amount';
 };
 
@@ -252,29 +259,113 @@ const handleConfirm = () => {
 
 const clickDialog = () => {
     console.log('clickDialog')
+
+    isSending.value = true;
     showPatternDialog.value = true;
+}
+
+
+// Add these helper functions at the top of your script section
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
+// Helper function to convert base64 to string
+function base64ToString(base64) {
+    return atob(base64);
+}
+
+// Function to get encryption key from password
+async function getEncryptionKey(password) {
+    const keyMaterial = await window.crypto.subtle.importKey(
+        'raw',
+        encoder.encode(password),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveBits', 'deriveKey']
+    );
+
+    return window.crypto.subtle.deriveKey(
+        {
+            name: 'PBKDF2',
+            salt: encoder.encode('your-secure-salt'),  // Use a secure salt
+            iterations: 100000,
+            hash: 'SHA-256'
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+    );
+}
+
+// Decryption function
+async function decryptMetadata(encryptedData, pin) {
+    try {
+        const encryptionKey = pin;
+        const key = await getEncryptionKey(encryptionKey);
+
+        // Convert base64 to Uint8Array
+        const encryptedArray = new Uint8Array(
+            base64ToString(encryptedData).split('').map(c => c.charCodeAt(0))
+        );
+
+        // Extract IV and encrypted content
+        const iv = encryptedArray.slice(0, 12);
+        const content = encryptedArray.slice(12);
+
+        const decryptedData = await window.crypto.subtle.decrypt(
+            {
+                name: 'AES-GCM',
+                iv: iv
+            },
+            key,
+            content
+        );
+
+        return JSON.parse(decoder.decode(decryptedData));
+    } catch (error) {
+        console.error('Decryption error:', error);
+        return null;
+        // throw error;
+    }
 }
 
 const handlePatternComplete = async (pattern) => {
     console.log('handlePatternComplete')
     showPatternDialog.value = false;
 
+    const candidate = JSON.parse(localStorage.getItem('mukapay-face'));
+    const decryptedUsername = await decryptMetadata(candidate.metadata.username, pattern);
+    if(decryptedUsername !== username.value){
+      isSending.value = false;
+      alert('Invalid pattern')
+      return;
+    }
+
     const proof = await generateProof(username.value, pattern)
     console.log('proof:', proof)
 
     if(selectedType.value === 'username') {
-      handleSend(proof);
+      await handleSend(proof);
     } else if (selectedType.value === 'ethereum') {
-      handleWithdraw(proof);
+      await handleWithdraw(proof);
     }
 
+    // resetSend();
     // currentStep.value = 'result';
 }
 
 const done = (event) => {
   document.getElementById(`close-send`).click();
+  resetSend();
 }
 
+const closePatternDialog = (_action) => {
+  if(_action === 'cancel') {
+    isSending.value = false;
+  }
+  showPatternDialog.value = false;
+}
 
 const handleSend = async (_proof) => {
   console.log('handleSend')
@@ -357,6 +448,15 @@ const computedRecipient = computed(() => {
     return recipient.value;
   }
 })
+
+const resetSend = () => {
+  amount.value = '';
+  recipient.value = '';
+  currentStep.value = 'amount';
+  selectedType.value = '';
+  showPatternDialog.value = false;
+  isSending.value = false;
+}
 
 </script>
 
