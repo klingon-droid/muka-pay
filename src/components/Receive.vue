@@ -145,7 +145,7 @@
 import { ref, onMounted, watch } from 'vue'
 import PatternPad2 from './PatternPad2.vue'
 import PaymentResultDialog from './PaymentResultDialog.vue'
-import { generateProof, getUsernameHash } from '../stores/user'
+import { generateProof, getUsernameHash, refreshBalance } from '../stores/user'
 import { parseUnits } from 'viem'
 
 const receive_step = ref(0)
@@ -457,6 +457,7 @@ const handlePay = async () => {
             paymentSuccess.value = false;
         } else {
             const data = await response.json()
+            refreshBalance.set(Date.now());
             console.log('Payment response:', data)
             paymentSuccess.value = true
         }

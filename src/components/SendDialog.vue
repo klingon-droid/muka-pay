@@ -169,7 +169,7 @@
 import { ref, defineProps, defineEmits, computed } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue'
 import PatternPad2 from './PatternPad2.vue'
-import { generateProof, getUsernameHash } from '../stores/user'
+import { generateProof, getUsernameHash, refreshBalance } from '../stores/user'
 import { parseUnits } from 'viem'
 
 const patternPad = ref(null)
@@ -247,6 +247,7 @@ const handlePatternComplete = async (pattern) => {
             currentStep.value = 5
         } else {
             const data = await response.json()
+            refreshBalance.set(Date.now());
             console.log('Payment response:', data)
             currentStep.value = 4
         }

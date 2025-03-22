@@ -1,11 +1,13 @@
 export const prerender = false;
 
+import { refreshBalance } from '../../stores/user';
+
 export async function POST({ request }) {
   const { payment_proof, amount, from_hash, to_hash } = await request.json();
 //   console.log('paymentData:', payment_proof, amount, from_hash, to_hash)
   const payload = {payment_proof, amount, from_hash, to_hash}
   console.log('payload-', payload)
-  
+
   try {
     const response = await fetch(`https://mukapay-api.fly.dev/api/pay`, {
       method: 'POST',
@@ -21,6 +23,7 @@ export async function POST({ request }) {
     } else {
       const data = await response.json();
       console.log('data:', data)
+      refreshBalance.set(Date.now());
       return new Response(JSON.stringify(data), {
         status: 200,
         headers: {

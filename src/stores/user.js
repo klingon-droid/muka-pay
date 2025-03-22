@@ -1,6 +1,7 @@
 import { atom } from 'nanostores'
 
 export const username = atom('')
+export const refreshBalance = atom(0)
 
 export function setUsername(name) {
     console.log('setting username:', name)

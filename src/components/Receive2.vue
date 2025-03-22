@@ -155,7 +155,7 @@ import { ref, onMounted } from 'vue';
 import Eyecon from './Eyecon.vue';
 import PatternSignDialog from './PatternSignDialog.vue';
 import { parseUnits } from 'viem';
-import { generateProof, getUsernameHash } from '../stores/user'
+import { generateProof, getUsernameHash, refreshBalance } from '../stores/user'
 
 import { Human } from '@vladmandic/human'
 // Initialize Human with proper configuration
@@ -484,6 +484,7 @@ const handlePay = async () => {
             return false;
         } else {
             const data = await response.json()
+            refreshBalance.set(Date.now());
             console.log('Payment response:', data)
             return true;
         }

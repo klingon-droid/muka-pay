@@ -341,7 +341,8 @@
         if (faceEmbedding) {
             matchedEmbedding.value = JSON.parse(faceEmbedding);
             isNewUser.value = false;
-            login_step.value = 1;
+            // login_step.value = 1;
+            window.location.href = '/app';
         }
 
     })
@@ -412,7 +413,8 @@
                 localStorage.setItem('mukapay-face', JSON.stringify(matchedData));
                 matchedEmbedding.value = matchedData;
                 isNewUser.value = false;
-                login_step.value = 1;
+                // login_step.value = 1;
+                window.location.href = '/app';
             }
 
         } catch (error) {
