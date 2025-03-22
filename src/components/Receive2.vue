@@ -111,7 +111,7 @@
                 <div v-if="accountFound && isVerified" class="flex flex-col items-center gap-2">
                     
                     <div class="mb-12 text-center px-8">
-                        <p class="text-2xl font-bold mb-4">Hello @{{ payerUsername }}</p>
+                        <p class="text-2xl font-bold mb-4 text-white">Hello <span class="font-doto text-3xl ml-2">@{{ payerUsername }}</span> </p>
                         <p class="text-red-500">This is the final step.<br>Sign again to confirm.</p>
                     </div>
 

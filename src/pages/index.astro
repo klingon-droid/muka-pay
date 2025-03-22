@@ -4,11 +4,19 @@ import Layout from '../layouts/Layout.astro';
 import App from '../components/App.vue';
 import Gate from '../components/Gate.vue';
 import Gate2 from '../components/Gate2.vue';
+import Consent from '../components/Consent.vue';
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
+	
+	<head>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Doto:wght@600&display=swap" rel="stylesheet">
+	</head>
+
 	<script>
 		import { Buffer } from "buffer";
 	
@@ -18,5 +26,6 @@ import Gate2 from '../components/Gate2.vue';
 	  </script>
 	<!-- <App client:only="vue" /> -->
 	 <!-- <Gate client:only="vue" /> -->
-	 <Gate2 client:only="vue" />
+	 <!-- <Gate2 client:only="vue" /> -->
+	 <Consent client:only="vue" />
 </Layout>

@@ -23,7 +23,12 @@
     <template v-else>
       <div class="w-full grid grid-cols-[2rem_1fr_2rem] justify-center items-center p-4">
         <div></div>
-        <p class="text-2xl font-doto text-center w-full">@{{ currentUsername }}</p>
+        <div class="w-full flex justify-center items-center relative">
+
+          <div class="bg-blue-500/50 -mt-[12rem] w-[20rem] h-[20rem] absolute rounded-full blur-[5rem] z-10"></div>
+
+          <p class="text-4xl font-doto text-center w-full z-20 text-blue-500">@{{ currentUsername }}</p>
+        </div>
         <div class="w-full flex justify-end items-center">
           <button @click="deletePineconeRecord(matchedEmbedding.id)">
             <iconify-icon icon="mdi:hamburger-menu" class="text-2xl" />
@@ -36,7 +41,7 @@
         <h1 class="text-9xl font-doto">{{ usdcBalance }}</h1>
       </div>
 
-      <div class="flex flex-col gap-1 w-full mb-8">
+      <div class="flex flex-col gap-1 w-full mb-4">
         <!-- <button @click="isSendDialogOpen = true" class="bg-black text-white font-bold text-xl p-4 py-6 rounded-full w-full">Send</button> -->
 
         <ExpandableButton>

@@ -1,6 +1,6 @@
 <template>
   <div class="flex justify-center items-center relative w-full">
-    <div :class="[expanded ? 'opacity-0 pointer-events-none duration-300' : 'opacity-100 pointer-events-auto ']" @click="clickHandler" class="text-white z-50 bg-black rounded-full h-18 flex justify-center items-center w-full max-w-sm pointer-events-auto">
+    <div :class="[expanded ? 'opacity-0 pointer-events-none duration-300' : 'opacity-100 pointer-events-auto ']" @click="clickHandler" class="text-white text-3xl z-50 bg-black rounded-full h-18 flex justify-center items-center w-full max-w-sm pointer-events-auto">
       <div ref="buttonText">
         <slot name="button_text"></slot>
       </div>
@@ -11,8 +11,11 @@
     </div>
 
     <main ref="content" :class="[expanded ? 'pointer-events-auto scale-100 opacity-100 delay-100 duration-300 z-[999] bg-black' : 'pointer-events-none scale-[0.5] opacity-0 duration-200 ', 'transition-all  fixed h-screen w-screen top-0 left-0 ']">
-      <nav class="absolute top-0 left-0 w-full flex justify-start items-center pointer-events-none p-4">
-        <button :id="`close-${buttonId}`" class="bg-white rounded-full text-lg p-2 px-4 pointer-events-auto" @click="clickHandler">close</button>
+      <nav class="absolute top-0 left-0 w-full flex justify-start items-center pointer-events-none p-4 pl-3">
+        <button :id="`close-${buttonId}`" class="bg-red-500 text-white rounded-full text-lg p-1 px-4 pointer-events-auto z-10" @click="clickHandler">close</button>
+
+        <div class="bg-red-500/50 -ml-10 w-[12rem] h-[12rem] absolute rounded-full blur-[5rem]"></div>
+        
       </nav>
 
       <slot name="content"></slot>
