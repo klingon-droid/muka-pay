@@ -87,7 +87,7 @@
           <template #button_text>History</template>
 
           <template #content>
-            <History2 />
+            <History3 />
           </template>
         </ExpandableButton>
 
@@ -206,7 +206,7 @@ const refreshBalanceStore = useStore(refreshBalance);
 import Receive2 from "./Receive2.vue";
 import Deposit from "./Deposit.vue";
 import Send2 from "./Send2.vue";
-import History2 from "./History2.vue";
+import History3 from "./History3.vue";
 
 const isFreshLogin = ref(false);
 
