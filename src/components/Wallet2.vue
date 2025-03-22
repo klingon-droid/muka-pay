@@ -53,10 +53,22 @@
         </div>
       </div>
 
-      <div class="w-full h-full flex justify-center items-center flex-col">
+      <div @click="tapToRefreshBalance" class="w-full h-full flex justify-center items-center flex-col">
         <p class="text-2xl font-doto mb-4">Base USDC Balance</p>
-        <h1 class="text-9xl font-doto">{{ usdcBalance }}</h1>
+        
+        <div v-if="isLoading" class="grid grid-cols-3 text-9xl font-doto">
+          <div class="animate-wave-1">.</div>
+          <div class="animate-wave-2">.</div>
+          <div class="animate-wave-3">.</div>
+        </div>
+        <div v-else class="text-8xl font-doto">
+          {{ usdcBalance }}
+        </div>
+
+        <iconify-icon :class="isLoading ? 'scale-0' : 'scale-100'" icon="pixelarticons:loader" class="text-5xl text-black/30 my-4 duration-300"></iconify-icon>
       </div>
+
+      
 
       <div class="flex flex-col gap-1 w-full mb-8">
         <!-- <button @click="isSendDialogOpen = true" class="bg-black text-white font-bold text-xl p-4 py-6 rounded-full w-full">Send</button> -->
@@ -227,7 +239,10 @@ import History4 from "./History4.vue";
 
 const isFreshLogin = ref(false);
 
-onMounted(() => {
+const isRefreshing = ref(false);
+const isLoading = ref(true);
+
+onMounted(async () => {
   /// get face embedding from local storage
   const faceEmbedding = localStorage.getItem("mukapay-face");
   if (faceEmbedding) {
@@ -330,12 +345,22 @@ const handlePatternComplete = async (pattern) => {
 };
 
 const getBalance = async () => {
-  const response = await fetch(`${window.location.origin}/api/balance/${currentUsername.value}`);
-  const data = await response.json();
-  console.log("balance data:", data);
-  usdcBalance.value = data.balance / 1e6;
-  if(Number.isNaN(usdcBalance.value)) {
+  isLoading.value = true;
+  try {
+    const response = await fetch(`${window.location.origin}/api/balance/${currentUsername.value}`);
+    const data = await response.json();
+    console.log("balance data:", data);
+    usdcBalance.value = data.balance / 1e6;
+    if(Number.isNaN(usdcBalance.value)) {
+      usdcBalance.value = 0;
+    }
+  } catch (error) {
+    console.error("Error fetching balance:", error);
     usdcBalance.value = 0;
+  } finally {
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 1000); // Keep loading state for at least 1 second for smooth animation
   }
 };
 
@@ -457,6 +482,12 @@ const handleLockWallet = () => {
   patternPadRef.value?.clearPattern();
 }
 
+const tapToRefreshBalance = async () => {
+  if (!isLoading.value) {
+    await getBalance();
+  }
+}
+
 </script>
 
 <style>
@@ -474,5 +505,29 @@ const handleLockWallet = () => {
   font-weight: 600;
   font-style: normal;
   font-variation-settings: "wdth" 100;
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-wave-1 {
+  animation: wave 1s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.animate-wave-2 {
+  animation: wave 1s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+.animate-wave-3 {
+  animation: wave 1s ease-in-out infinite;
+  animation-delay: 0.4s;
 }
 </style>
