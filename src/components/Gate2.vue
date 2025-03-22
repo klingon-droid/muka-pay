@@ -38,118 +38,75 @@
             <button @click="requestCameraPermission()" class="mt-12 bg-black text-white px-4 py-2 rounded-md">Enable</button>
         </template>
 
-        <!-- <template v-if="isFaceDetected&&!isSearchBusy"> -->
-        <template v-if="!isSearchBusy">
-
-            <template v-if="isNewUser">
-    
-    
-                <template v-if="register_step == 1">
-                    <div class="grow w-full flex flex-col justify-start items-center">                        
-                        <div class="text-center mb-12">
-                            <p class="text-4xl font-bold mb-4">Hello New Face</p>
-                            <p class="text-lg">Let's get started!</p>
-                        </div>
-        
-                        <button @click="register_step = 2" class="bg-black text-white px-8 py-4 rounded-full text-2xl">Register New Account</button>
-        
-                        <div class="text-center absolute bottom-12 w-full">
-                            <p class="text-xl font-bold">Already have an account?</p>
-                            <p class="text-sm">Please center your face and come closer</p>
-                            <button @click="searchAccount()" class="underline">Try Again</button>
-                        </div>
-                    </div>
-                </template>
-    
-                <template v-if="register_step == 2">
-    
-    
-                    <div class="grow w-full flex flex-col justify-start items-center">
-                        <div class="text-center mb-12 px-4">
-                            <p class="text-2xl font-bold mb-4">Pick your username</p>
-                            <p class="">This will be used to send and receive payments</p>
-                        </div>
-    
-                        <div class="w-full flex flex-col justify-center items-center px-8 space-y-4">
-                            <input type="text" v-model="username" class="w-full p-4 rounded-full text-2xl border border-gray-300 placeholder:text-center text-center" placeholder="Enter your username...">
-                            <button @click="register_step = 3" class="bg-black text-white px-8 py-4 rounded-full text-2xl w-full">Next</button>
-                        </div>
+        <template v-if="isNewUser">
+            <template v-if="register_step == 1">
+                <div class="grow w-full flex flex-col justify-start items-center">                        
+                    <div class="text-center mb-12">
+                        <p class="text-4xl font-bold mb-4">Hello New Face</p>
+                        <p class="text-lg">Let's get started!</p>
                     </div>
     
+                    <button @click="register_step = 2" class="bg-black text-white px-8 py-4 rounded-full text-2xl">Register New Account</button>
     
-                </template>
+                    <div class="text-center absolute bottom-12 w-full">
+                        <p class="text-xl font-bold">Already have an account?</p>
+                        <p class="text-sm">Please center your face and come closer</p>
+                    </div>
+                </div>
+            </template>
     
-                <template v-if="register_step == 3">
-                    <div class="grow w-full flex flex-col justify-start items-center">
-                        <div class="w-full flex justify-center items-center p-4 flex-col -mt-12">
-                            <p class="text-2xl text-center font-bold mb-4">Your Secret Pattern</p>
-                            <p class="text-center">This is your password.Make sure it is not easy to guess, and remember it!</p>
-                        </div>
+            <template v-if="register_step == 2">
     
-                        <div class="w-full flex justify-center flex-col items-center text-center space-y-2">
-                            <div class="flex items-center gap-2">
-                                <iconify-icon 
-                                    :icon="firstPattern && firstPattern.length >= 6 ? 'mdi:check-circle' : 'mdi:checkbox-blank-circle-outline'"
-                                    :class="firstPattern && firstPattern.length >= 6 ? 'text-black' : 'text-gray-300'"
-                                    class="text-xl"
-                                />
-                                <p>Minimum 6 dots</p>
-                            </div>
-                            <div v-if="firstPattern && firstPattern.length >= 6" class="flex items-center gap-2">
-                                <iconify-icon 
-                                    :icon="confirmPattern ? 'mdi:check-circle' : 'mdi:checkbox-blank-circle-outline'"
-                                    :class="confirmPattern ? 'text-black' : 'text-gray-300'"
-                                    class="text-xl"
-                                />
-                                <p>Repeat the pattern</p>
-                            </div>
-                        </div>
     
-                        <div class="relative w-full flex flex-col justify-center items-center">
-                            <PatternPad2 
-                                ref="patternPadRef" 
-                                @pattern-complete="handlePatternComplete"
+                <div class="grow w-full flex flex-col justify-start items-center">
+                    <div class="text-center mb-12 px-4">
+                        <p class="text-2xl font-bold mb-4">Pick your username</p>
+                        <p class="">This will be used to send and receive payments</p>
+                    </div>
+    
+                    <div class="w-full flex flex-col justify-center items-center px-8 space-y-4">
+                        <input type="text" v-model="username" class="w-full p-4 rounded-full text-2xl border border-gray-300 placeholder:text-center text-center" placeholder="Enter your username...">
+                        <button @click="register_step = 3" class="bg-black text-white px-8 py-4 rounded-full text-2xl w-full">Next</button>
+                    </div>
+                </div>
+    
+    
+            </template>
+    
+            <template v-if="register_step == 3">
+                <div class="grow w-full flex flex-col justify-start items-center">
+                    <div class="w-full flex justify-center items-center p-4 flex-col -mt-12">
+                        <p class="text-2xl text-center font-bold mb-4">Your Secret Pattern</p>
+                        <p class="text-center">This is your password.Make sure it is not easy to guess, and remember it!</p>
+                    </div>
+    
+                    <div class="w-full flex justify-center flex-col items-center text-center space-y-2">
+                        <div class="flex items-center gap-2">
+                            <iconify-icon 
+                                :icon="firstPattern && firstPattern.length >= 6 ? 'mdi:check-circle' : 'mdi:checkbox-blank-circle-outline'"
+                                :class="firstPattern && firstPattern.length >= 6 ? 'text-black' : 'text-gray-300'"
+                                class="text-xl"
                             />
-    
-                            <!-- First pattern created, show controls -->
-                            <div v-if="patternStep === 1 && firstPattern && firstPattern.length >= 6" class="flex gap-2">
-                                <button 
-                                    @click="resetPattern"
-                                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-full text-sm flex items-center gap-2"
-                                >
-                                    <iconify-icon icon="mdi:refresh" />
-                                    Reset
-                                </button>
-                                <button 
-                                    @click="moveToConfirmPattern"
-                                    class="bg-black hover:bg-gray-900 text-white px-6 py-2 rounded-full text-sm flex items-center gap-2"
-                                >
-                                    <iconify-icon icon="mdi:check" />
-                                    Next
-                                </button>
-                            </div>
-    
-                            <!-- Confirm pattern created, show controls -->
-                            <div v-if="patternStep === 2 && confirmPattern" class="flex gap-2 ">
-                                <button 
-                                    @click="resetPattern"
-                                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-full text-sm flex items-center gap-2"
-                                >
-                                    <iconify-icon icon="mdi:refresh" />
-                                    Reset
-                                </button>
-                                <button 
-                                    @click="submitPattern"
-                                    class="bg-black hover:bg-gray-900 text-white px-6 py-2 rounded-full text-sm flex items-center gap-2"
-                                >
-                                    <iconify-icon icon="mdi:check" />
-                                    Confirm
-                                </button>
-                            </div>
+                            <p>Minimum 6 dots</p>
                         </div>
+                        <div v-if="firstPattern && firstPattern.length >= 6" class="flex items-center gap-2">
+                            <iconify-icon 
+                                :icon="confirmPattern ? 'mdi:check-circle' : 'mdi:checkbox-blank-circle-outline'"
+                                :class="confirmPattern ? 'text-black' : 'text-gray-300'"
+                                class="text-xl"
+                            />
+                            <p>Repeat the pattern</p>
+                        </div>
+                    </div>
     
-                        <div v-if="patternError" class="text-red-500 text-center flex flex-col items-center gap-4 mt-6">
-                            <p>{{ patternError }}</p>
+                    <div class="relative w-full flex flex-col justify-center items-center">
+                        <PatternPad2 
+                            ref="patternPadRef" 
+                            @pattern-complete="handlePatternComplete"
+                        />
+    
+                        <!-- First pattern created, show controls -->
+                        <div v-if="patternStep === 1 && firstPattern && firstPattern.length >= 6" class="flex gap-2">
                             <button 
                                 @click="resetPattern"
                                 class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-full text-sm flex items-center gap-2"
@@ -157,76 +114,111 @@
                                 <iconify-icon icon="mdi:refresh" />
                                 Reset
                             </button>
+                            <button 
+                                @click="moveToConfirmPattern"
+                                class="bg-black hover:bg-gray-900 text-white px-6 py-2 rounded-full text-sm flex items-center gap-2"
+                            >
+                                <iconify-icon icon="mdi:check" />
+                                Next
+                            </button>
+                        </div>
+    
+                        <!-- Confirm pattern created, show controls -->
+                        <div v-if="patternStep === 2 && confirmPattern" class="flex gap-2 ">
+                            <button 
+                                @click="resetPattern"
+                                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-full text-sm flex items-center gap-2"
+                            >
+                                <iconify-icon icon="mdi:refresh" />
+                                Reset
+                            </button>
+                            <button 
+                                @click="submitPattern"
+                                class="bg-black hover:bg-gray-900 text-white px-6 py-2 rounded-full text-sm flex items-center gap-2"
+                            >
+                                <iconify-icon icon="mdi:check" />
+                                Confirm
+                            </button>
                         </div>
                     </div>
-                </template>
     
-                <template v-if="register_step == 4">
-    
-                    <div class="w-full flex flex-col justify-start items-center"> 
-    
-                        <div v-if="!isNewFaceEmbeddingGenerated" class="text-center">
-                            <p class="text-2xl font-bold mb-2">Hold Still</p>
-                            <p>Generating your face signature</p>
-                            <p>Info: {{ captureInfo }}</p>
-                        </div>
-    
-                        <div :class="[isNewFaceEmbeddingGenerated?'opacity-100':'opacity-0', 'text-center']">
-                            
-                            <div class="mb-12">
-                                <p class="text-3xl font-bold mb-2">Welcome!</p>
-                                <p>{{ username }}, your account is ready!</p>
-                            </div>
-    
-                            <button @click="completeRegister()" class="bg-black text-white px-6 py-3 rounded-full text-xl w-full">Enter App</button>
-                            
-                        </div>
-    
-    
+                    <div v-if="patternError" class="text-red-500 text-center flex flex-col items-center gap-4 mt-6">
+                        <p>{{ patternError }}</p>
+                        <button 
+                            @click="resetPattern"
+                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-full text-sm flex items-center gap-2"
+                        >
+                            <iconify-icon icon="mdi:refresh" />
+                            Reset
+                        </button>
                     </div>
-    
-    
-                </template>
-            </template>
-    
-            <template v-if="!isNewUser">
-                <div class="w-full flex flex-col justify-start items-center">
-                    
-                    <div class="flex flex-col justify-center items-center" v-if="login_step == 1">
-                        <p class="text-2xl font-bold mb-2">Welcome back!</p>
-                        <p>Draw your secret pattern to login</p>
-
-
-                        <PatternPad2 ref="patternPadRef" @pattern-complete="handleExistingUserLogin" />
-                    </div>
-
-                    <div v-if="login_step == 2">
-
-                        <div>
-                            <p class="mb-8 text-center text-2xl font-bold">Verifying...</p>
-                        </div>
-
-                        <div class="flex justify-center items-center">
-                            <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-black"></div>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col justify-center items-center" v-if="login_step == 3">
-                        
-                        <div class="mb-8 text-center">
-                            <p class="text-2xl font-bold mb-2">Login failed</p>
-                            <p>Is your pattern correct? Please try again</p>
-                        </div>
-
-                        <button @click="login_step = 1" class="bg-black text-white px-6 py-3 rounded-full text-xl ">Try again</button>
-                        
-                    </div>
-
                 </div>
             </template>
-
-
+    
+            <template v-if="register_step == 4">
+    
+                <div class="w-full flex flex-col justify-start items-center"> 
+    
+                    <div v-if="!isNewFaceEmbeddingGenerated" class="text-center">
+                        <p class="text-2xl font-bold mb-2">Hold Still</p>
+                        <p>Generating your face signature</p>
+                        <p>Info: {{ captureInfo }}</p>
+                    </div>
+    
+                    <div :class="[isNewFaceEmbeddingGenerated?'opacity-100':'opacity-0', 'text-center']">
+                        
+                        <div class="mb-12">
+                            <p class="text-3xl font-bold mb-2">Welcome!</p>
+                            <p>{{ username }}, your account is ready!</p>
+                        </div>
+    
+                        <button @click="completeRegister()" class="bg-black text-white px-6 py-3 rounded-full text-xl w-full">Enter App</button>
+                        
+                    </div>
+    
+    
+                </div>
+    
+    
+            </template>
         </template>
+
+        <template v-if="!isNewUser">
+            <div class="w-full flex flex-col justify-start items-center">
+                
+                <div class="flex flex-col justify-center items-center" v-if="login_step == 1">
+                    <p class="text-2xl font-bold mb-2">Welcome back!</p>
+                    <p>Draw your secret pattern to login</p>
+
+
+                    <PatternPad2 ref="patternPadRef" @pattern-complete="handleExistingUserLogin" />
+                </div>
+
+                <div v-if="login_step == 2">
+
+                    <div>
+                        <p class="mb-8 text-center text-2xl font-bold">Verifying...</p>
+                    </div>
+
+                    <div class="flex justify-center items-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-black"></div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col justify-center items-center" v-if="login_step == 3">
+                    
+                    <div class="mb-8 text-center">
+                        <p class="text-2xl font-bold mb-2">Login failed</p>
+                        <p>Is your pattern correct? Please try again</p>
+                    </div>
+
+                    <button @click="login_step = 1" class="bg-black text-white px-6 py-3 rounded-full text-xl ">Try again</button>
+                    
+                </div>
+
+            </div>
+        </template>
+
 
     </div>
 </template>
@@ -333,6 +325,7 @@
     const captureInfo = ref('');
     const isActive = ref(false);
     const isFlipped = ref(true);
+    const autoCheckInterval = ref(null);
 
     const matchedEmbedding = ref(null);
 
@@ -535,21 +528,29 @@
         register_step.value = 4;
     }
 
-    watch(register_step, () => {
+    watch([isNewUser, register_step], ([newIsNewUser, newRegisterStep]) => {
+        // Clear any existing interval
+        if (autoCheckInterval.value) {
+            clearInterval(autoCheckInterval.value);
+            autoCheckInterval.value = null;
+        }
 
-        /// Start generating face embedding when register_step is 4
-        // TODO: add detect face orientation: should start when face is looking center
-        if (register_step.value == 4) {
+        // Start auto-check if we're at step 1 and it's a new user
+        if (newIsNewUser && newRegisterStep === 1) {
+            autoCheckInterval.value = setInterval(() => {
+                searchAccount();
+            }, 5000); // Check every 5 seconds
+        }
+    });
+
+    // Watch for register_step 4 to start face embedding generation
+    watch(register_step, (newStep) => {
+        if (newStep === 4) {
             isNewFaceEmbeddingGenerated.value = false;
-
             captureInfo.value = 'Detecting your face...';
             startFaceDetection();
-
-            // setTimeout(() => {
-            //     isNewFaceEmbeddingGenerated.value = true;
-            // }, 1000);
         }
-    })
+    });
 
     const startFaceDetection = async () => {
         if (!videoRef.value || !canvasRef.value) return
