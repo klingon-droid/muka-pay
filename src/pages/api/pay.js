@@ -1,6 +1,6 @@
-export const prerender = false;
+// export const prerender = false;
 
-import { refreshBalance } from '../../stores/user';
+// import { refreshBalance } from '../../stores/user';
 
 export async function POST({ request }) {
   const { proof, amount, to_hash } = await request.json();
@@ -27,7 +27,7 @@ export async function POST({ request }) {
     } else {
       const data = await response.json();
       console.log('data:', data)
-      refreshBalance.set(Date.now());
+      // refreshBalance.set(Date.now());
       return new Response(JSON.stringify(data), {
         status: 200,
         headers: {
