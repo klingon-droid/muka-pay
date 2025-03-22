@@ -100,12 +100,11 @@ const handleSendPayment = (payment) => {
     isSendDialogOpen.value = false
 }
 
-import VConsole from 'vconsole';
+
 
 
 onMounted( async () => {
     await getBalance();
-    const vConsole = new VConsole();
 })
 
 
