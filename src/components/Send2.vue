@@ -12,7 +12,7 @@
       </div>
       
       <div v-if="currentStep === 'recipient'" class="flex flex-col items-center gap-4">
-        <p class="text-2xl">Send {{ amount }} USDC to:</p>
+        <p class="text-2xl">Send {{ amount }} USDC to: AAAAAAA</p>
         <div class="flex items-center">
           <span class="text-2xl mr-2">@</span>
           <input 
@@ -67,7 +67,7 @@
           </div>
 
           <div :class="[selectedType === 'username'?'h-12':'h-0']" class="w-full duration-200 overflow-hidden">
-            <input type="text" class="bg-white/10 text-white rounded-xl p-2 px-4 w-full" placeholder="Enter username">
+            <input v-model="recipient" type="text" class="bg-white/10 text-white rounded-xl p-2 px-4 w-full" placeholder="Enter username">
           </div>
         </div>
   
@@ -82,7 +82,7 @@
           </div>
 
           <div :class="[selectedType === 'ethereum'?'h-12':'h-0']" class="w-full duration-200 overflow-hidden">
-            <input type="text" class="bg-white/10 text-white rounded-xl p-2 px-4 w-full" placeholder="Enter ethereum address">
+            <input v-model="recipient" type="text" class="bg-white/10 text-white rounded-xl p-2 px-4 w-full" placeholder="Enter ethereum address">
           </div>
         </div>
 
@@ -114,13 +114,13 @@
           <p class="text-white text-4xl">Going to send</p>  
 
           <div class="flex justify-center items-center flex-wrap space-x-4 py-12 font-doto">
-            <p class="text-5xl">123</p>
+            <p class="text-5xl">{{ amount }}</p>
             <p class="text-3xl text-white/50">Base USDC</p>
           </div>
 
           <div class="flex justify-center items-center flex-wrap space-x-4">
             <div class="text-4xl">To</div>
-            <div class="ml-2 bg-white text-black py-2 px-4 rounded-full text-xl ">@Username</div>
+            <div class="ml-2 bg-white text-black py-2 px-4 rounded-full text-xl ">{{ computedRecipient }}</div>
           </div>
         </div>
 
@@ -163,13 +163,13 @@
           <p class="text-white text-4xl">Sent</p>  
 
           <div class="flex justify-center items-center flex-wrap space-x-4 py-12 font-doto">
-            <p class="text-5xl">123</p>
+            <p class="text-5xl">{{ amount }}</p>
             <p class="text-3xl text-white/50">Base USDC</p>
           </div>
 
           <div class="flex justify-center items-center flex-wrap space-x-4">
             <div class="text-4xl">To</div>
-            <div class="ml-2 bg-white text-black py-2 px-4 rounded-full text-xl ">@Username</div>
+            <div class="ml-2 bg-white text-black py-2 px-4 rounded-full text-xl ">{{ computedRecipient }}</div>
           </div>
         </div>
 
@@ -190,8 +190,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useEventBus } from '@vueuse/core'
+import { generateProof, username, refreshBalance, getUsernameHash } from '../stores/user';
+import { parseUnits } from 'viem';
 
 const eventBus = useEventBus('expButton');
 const amount = ref('');
@@ -253,16 +255,108 @@ const clickDialog = () => {
     showPatternDialog.value = true;
 }
 
-const handlePatternComplete = () => {
+const handlePatternComplete = async (pattern) => {
     console.log('handlePatternComplete')
     showPatternDialog.value = false;
 
-    currentStep.value = 'result';
+    const proof = await generateProof(username.value, pattern)
+    console.log('proof:', proof)
+
+    if(selectedType.value === 'username') {
+      handleSend(proof);
+    } else if (selectedType.value === 'ethereum') {
+      handleWithdraw(proof);
+    }
+
+    // currentStep.value = 'result';
 }
 
 const done = (event) => {
   document.getElementById(`close-send`).click();
 }
+
+
+const handleSend = async (_proof) => {
+  console.log('handleSend')
+  // currentStep.value = 'result';
+
+  try {
+
+    console.log('amount:', amount.value)
+    console.log('recipient:', recipient.value)
+
+    const payload = {
+        "proof": _proof,
+        "amount": parseUnits(String(amount.value), 6).toString(),
+        "to_hash": await getUsernameHash(recipient.value),
+    }
+    console.log('payload:', payload)
+
+    const response = await fetch('/api/pay', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    })
+
+    if (!response.ok) {
+        console.log('Failed to send:', response)
+    } else {
+        const data = await response.json()
+        refreshBalance.set(Date.now());
+        console.log('Payment response:', data)
+        currentStep.value = 'result';
+    }
+
+    } catch (error) {
+      console.error('Error paying:', error)
+      console.log('Failed to send:', error)
+    }
+}
+
+const handleWithdraw = async(_proof) => {
+  console.log('handleWithdraw')
+  // currentStep.value = 'result';
+
+  try {
+
+    console.log('amount:', amount.value)
+    console.log('recipient:', recipient.value)
+
+    const payload = {
+        "proof": _proof,
+        "amount": parseUnits(String(amount.value), 6).toString(),
+        "to_hash": recipient.value,
+    }
+    console.log('payload:', payload)
+
+    const response = await fetch('/api/withdraw', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    })
+
+    if (!response.ok) {
+        console.log('Failed to send:', response)
+    } else {
+        const data = await response.json()
+        refreshBalance.set(Date.now());
+        console.log('Payment response:', data)
+        currentStep.value = 'result';
+    }
+
+    } catch (error) {
+      console.error('Error paying:', error)
+      console.log('Failed to send:', response)
+    }
+
+}
+
+
+const computedRecipient = computed(() => {
+  if (selectedType.value === 'username') {
+    return '@' + recipient.value;
+  } else {
+    return recipient.value;
+  }
+})
 
 </script>
 

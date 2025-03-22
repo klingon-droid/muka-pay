@@ -351,8 +351,12 @@ const handleLogout = () => {
   let answer = confirm('Are you sure you want to logout?')
   if(!answer) return;
 
+  localStorage.removeItem('mukapay-face');
+  
   isMenuOpen.value = false;
   isLocked.value = true;
+  
+  window.location.reload();
 }
 
 const handleDeleteAccount = async () => {
