@@ -231,9 +231,8 @@ const handlePatternComplete = async (pattern) => {
         console.log('recipient:', recipient.value)
 
         const payload = {
-            "payment_proof": proof,
+            "proof": proof,
             "amount": parseUnits(String(amount.value), 6).toString(),
-            "from_hash": await getUsernameHash(payerUsername.value),
             "to_hash": await getUsernameHash(recipient.value),
         }
         console.log('payload:', payload)

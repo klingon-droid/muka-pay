@@ -303,7 +303,7 @@
 
     import { ref, watch, onMounted } from 'vue';
     import PatternPad2 from './PatternPad2.vue';
-    import { setUsername } from '../stores/user';
+    import { setUsername, generateProof } from '../stores/user';
 
     const hasCameraPermission = ref(false);
     const isFaceDetected = ref(false);
@@ -777,6 +777,9 @@
 
             vectors.push(payload);
 
+            const proof = await generateProof(username.value, confirmPattern.value);
+            console.log('Proof:', proof);
+
             // Send to Pinecone
             const response = await fetch('https://face4-ff60525.svc.aped-4627-b74a.pinecone.io/vectors/upsert', {
                 method: 'POST',
@@ -789,7 +792,16 @@
 
             if (!response.ok) throw new Error('Failed to save to database');
 
-            username.value = '';
+            const register = await fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ proof })
+            });
+
+            if (!register.ok) throw new Error('Failed to register');
+            
         } catch (error) {
             console.error('Error saving to database:', error);
         } finally {

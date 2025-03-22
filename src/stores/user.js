@@ -46,16 +46,22 @@ export async function generateProof(_username, _password, _nonce = Date.now()) {
 
     // Generate Poseidon hashes
     const usernameHash = poseidon([usernameField]);
-    const passwordHash = poseidon([passwordField]);
+    const credentialHash = poseidon([usernameField, passwordField]);
+
+    // Create final hash with credential hash and nonce
+    const finalHash = poseidon([credentialHash, BigInt(_nonce)]);
 
     // Create input for the circuit
+    // Create input for the circuit
     const input = {
-        password_hash: poseidon.F.toString(passwordHash),
+        username: usernameField.toString(),
+        password: passwordField.toString(),
         username_hash: poseidon.F.toString(usernameHash),
+        credential_hash: poseidon.F.toString(credentialHash),
         nonce: _nonce.toString(),
-        result_hash: poseidon.F.toString(poseidon([passwordHash, usernameHash, BigInt(_nonce)]))
+        result_hash: poseidon.F.toString(finalHash)
     };
-
+    
     // Generate the proof
     const { proof, publicSignals } = await snarkjs.groth16.fullProve(
         input,
@@ -92,7 +98,8 @@ export const wagmiConfig = createConfig({
 })
 
 
-export const VAULT_CONTRACT_ADDRESS = "0xB4f7dF8d5ec4C61fF41040230fCF23d167220741";
+// export const VAULT_CONTRACT_ADDRESS = "0xB4f7dF8d5ec4C61fF41040230fCF23d167220741";
+export const VAULT_CONTRACT_ADDRESS = "0xCc0fB30f53Fd9af9f68913F337d87aA6086D6ADF";
 export const USDC_CONTRACT_ADDRESS = "0x0a6CC1B2cB197AA6a6878fee28Fd1c908B603ad4";
 
 

@@ -474,9 +474,8 @@ const handlePay = async () => {
         const response = await fetch('/api/pay', {
             method: 'POST',
             body: JSON.stringify({
-                "payment_proof": proof,
+                "proof": proof,
                 "amount": parseUnits(String(amount.value), 6).toString(),
-                "from_hash": await getUsernameHash(payerUsername.value),
                 "to_hash": await getUsernameHash(recipientUsername.value),
             })
         })
