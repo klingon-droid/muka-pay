@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-screen overflow-y-auto bg-black text-white font-lexend grid grid-rows-[auto_1fr_auto]">
+  <div class="w-full h-full overflow-y-auto  text-white font-lexend grid grid-rows-[auto_1fr_auto]">
     <nav class="w-full text-right text-white p-6 font-doto text-4xl">
       Deposit
     </nav>

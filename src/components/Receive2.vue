@@ -1,7 +1,7 @@
 <template>
-    <div :class="[submitSuccess?'bg-green-500':'bg-black']" class="w-screen h-screen flex flex-col justify-end items-center font-lexend duration-1000 delay-500">
+    <div :class="[submitSuccess?'bg-green-500':'bg-black']" class="w-full h-full flex flex-col justify-end items-center font-lexend duration-1000 delay-500">
 
-        <div class="fixed top-0 left-0 w-full p-4 pointer-events-none flex justify-end items-center">
+        <div class="fixed top-0 left-0 w-full p-6 pointer-events-none flex justify-end items-center">
 
             <!-- <button @click="handleCancel" class="bg-white text-black py-2 px-4 rounded-full pointer-events-auto">Cancel</button> -->
 
