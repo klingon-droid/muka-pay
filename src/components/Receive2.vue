@@ -102,7 +102,6 @@
 
                 <div v-if="accountFound && !isVerified" class="flex flex-col items-center gap-2">
                     <button :disabled="submitBusy" @click="clickDialog()" class="pointer-events-auto bg-white text-black py-2 px-4 pr-2 rounded-xl flex items-center gap-2 disabled:opacity-50 hover:bg-white/90 active:bg-white/80 transition-colors">
-                        {{ submitBusy }}    
                         <p>Sign with Pattern</p>
                         <iconify-icon class="text-4xl" icon="mage:dots-menu" />
                     </button>
@@ -128,7 +127,7 @@
 
                     </button>
 
-                    <button @click="handleSignOutAndCancel" class="border-2 border-white text-white p-4 px-8 text-lg rounded-xl flex items-center justify-center w-full max-w-sm">Cancel & Sign Out</button>
+                    <button v-if="!submitBusy" @click="handleSignOutAndCancel" class="border-2 border-white text-white p-4 px-8 text-lg rounded-xl flex items-center justify-center w-full max-w-sm">Cancel & Sign Out</button>
 
                 </div>
                 
@@ -155,7 +154,7 @@
 
 <script setup>
 
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount, onUnmounted } from 'vue';
 import Eyecon from './Eyecon.vue';
 import PatternSignDialog from './PatternSignDialog.vue';
 import { parseUnits } from 'viem';
@@ -444,8 +443,10 @@ const handlePatternComplete = async (pattern) => {
             payerPattern.value = pattern
             clearInterval(detectInterval)
             isVerified.value = true;
+            firstPin.value = pattern;
+        } else {
+            alert('Verification failed');
         }
-        firstPin.value = pattern;
     }else{
 
         if(firstPin.value !== pattern) {
@@ -547,6 +548,29 @@ const clickDialog = () => {
     console.log('clickDialog')
     showPatternDialog.value = true;
 }
+
+const resetReceive = () => {
+    isVerified.value = false;
+    accountFound.value = false;
+    isDetectingFace.value = true
+    isEditMode.value = true
+    videoRef.value = null;
+    clearInterval(detectInterval)
+    amount.value = ''
+    showPatternDialog.value = false
+    submitSuccess.value = false
+    submitBusy.value = false
+}
+
+onBeforeUnmount(() => {
+    console.log('onBeforeUnmount')
+    resetReceive();
+})
+
+onUnmounted(() => {
+    console.log('onUnmounted')
+    resetReceive();
+})
 
 </script>
 
