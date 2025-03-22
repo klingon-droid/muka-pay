@@ -4,5 +4,13 @@ import DepositVue from '../components/Deposit.vue';
 ---
 
 <Layout>
-    <DepositVue client:only="vue" />
+  <script>
+    import { Buffer } from "buffer";
+
+    if (typeof window !== "undefined") {
+      window.Buffer = Buffer;
+    }
+  </script>
+
+  <DepositVue client:only="vue" />
 </Layout>
