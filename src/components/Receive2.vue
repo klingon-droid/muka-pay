@@ -426,11 +426,19 @@ async function decryptMetadata(encryptedData, pin) {
 }
 
 
+const firstPin = ref(null);
+
 const handlePatternComplete = async (pattern) => {
 
     if(!isVerified.value){
         isVerified.value = true;
+        firstPin.value = pattern;
     }else{
+
+        if(firstPin.value !== pattern) {
+            alert('Verification pattern mismatch')
+            return;
+        } 
         
         console.log('Pattern completed:', pattern);
         // Handle the pattern completion here
@@ -452,6 +460,9 @@ const handlePatternComplete = async (pattern) => {
             }
         } else {
             submitSuccess.value = false;
+            handleSignOutAndCancel();
+            alert('Incorrect pattern')
+            return;
         }  
 
         submitBusy.value = false;
@@ -512,7 +523,10 @@ const handleSignOutAndCancel = () => {
     isVerified.value = false;
     accountFound.value = false;
     isDetectingFace.value = true
-
+    isEditMode.value = true
+    videoRef.value = null;
+    clearInterval(detectInterval)
+    amount.value = ''
 
 }
 
