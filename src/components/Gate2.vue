@@ -1,15 +1,15 @@
 <template>
-    <div class="h-screen w-screen flex flex-col justify-center items-center py-12 space-y-6">
+    <div class="h-[100dvh] w-screen flex flex-col justify-center items-center py-12 space-y-6">
 
 
         <button v-if="register_step > 1" @click="cancelRegister()" class="bg-red-500 text-white text-lg px-4 py-2 rounded-full top-4 right-4 fixed">Cancel</button>
         
-        <div :class="[ hasCameraPermission? [ isFaceDetected?'scale-[0.8]':'','w-[300px] h-[300px] bg-gray-200']:'w-[200px] h-[200px] bg-black', '  rounded-full flex justify-center items-center duration-300 shrink-0' ]">
+        <div :class="[ hasCameraPermission? [ isFaceDetected?'scale-[0.8]':'','w-[250px] h-[250px] bg-gray-200']:'w-[180px] h-[180px] bg-black', '  rounded-full flex justify-center items-center duration-300 shrink-0' ]">
             <iconify-icon v-if="!hasCameraPermission" icon="typcn:camera" class="text-white text-[5rem] absolute"></iconify-icon>
 
             <div class="w-full h-full flex justify-center items-center flex-col">
 
-                <div :class="[!isActive?'w-[200px] h-[200px]':' w-[300px] h-[300px] overflow-hidden','rounded-full duration-300 delay-75 absolute', '']">
+                <div :class="[!isActive?'w-[180px] h-[180px]':' w-[250px] h-[250px] overflow-hidden','rounded-full duration-300 delay-75 absolute', '']">
                     <video 
                         ref="videoRef" 
                         autoplay 
@@ -33,9 +33,16 @@
             Searching Account
         </div>
 
+        <!-- Loading indicator for model initialization -->
+        <div v-if="isModelLoading" class="flex flex-col items-center justify-center space-y-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-black"></div>
+            <p class="text-lg font-medium">Loading face recognition models...</p>
+            <p class="text-sm text-gray-500">This may take a few moments</p>
+        </div>
 
-        <template v-if="!hasCameraPermission && !matchedEmbedding">
-            <button @click="requestCameraPermission()" class="mt-12 bg-black text-white px-4 py-2 rounded-md">Enable</button>
+        <!-- Camera permission button - only show after models are loaded -->
+        <template v-if="!hasCameraPermission && !matchedEmbedding && !isModelLoading">
+            <button @click="requestCameraPermission()" class="mt-12 bg-black text-white px-4 py-2 rounded-md">Enable Camera</button>
         </template>
 
         <template v-if="isNewUser">
@@ -329,21 +336,36 @@
 
     const matchedEmbedding = ref(null);
 
-    onMounted(() => {
+    const isModelLoading = ref(true);
+    const isModelLoaded = ref(false);
+
+    onMounted(async () => {
+        // Initialize Human models
+        try {
+            await human.load();
+            await human.warmup();
+            isModelLoaded.value = true;
+        } catch (error) {
+            console.error('Error initializing face detection:', error);
+        } finally {
+            isModelLoading.value = false;
+        }
 
         /// get face embedding from local storage
         const faceEmbedding = localStorage.getItem('mukapay-face');
         if (faceEmbedding) {
             matchedEmbedding.value = [JSON.parse(faceEmbedding)]; // Store as array to be consistent
             isNewUser.value = false;
-            // login_step.value = 1;
             window.location.href = '/app';
         }
-
     })
 
     const requestCameraPermission = async () => {
-        // hasCameraPermission.value = true;
+        if (!isModelLoaded.value) {
+            console.error('Models not loaded yet');
+            return;
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: {
                 facingMode: 'user'
@@ -363,7 +385,6 @@
 
         // search account
         await searchAccount();
-        
     }
 
     // dummy detect face
