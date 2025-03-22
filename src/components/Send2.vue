@@ -4,7 +4,7 @@
         Send
     </nav>
     
-    <div v-if="currentStep !== 'summary' && currentStep !== 'result'" class="text-center space-y-8 text-white mt-22">
+    <div v-if="currentStep !== 'summary' && currentStep !== 'result' && currentStep !== 'type'" class="text-center space-y-8 text-white mt-22">
       <div v-if="currentStep === 'amount'" class="text-5xl font-bold break-all flex justify-center items-center flex-wrap font-doto">
         <p v-if="amount">{{ amount }}</p>
         <p v-else class="text-white/20 whitespace-nowrap p-4">Enter amount</p>
@@ -50,11 +50,11 @@
       </div>
     </div>
 
-    <div v-if="currentStep === 'type'" class="w-full">
+    <div v-if="currentStep === 'type'" class="w-full h-full flex justify-end items-center flex-col">
 
       <p class="w-full text-center text-white text-2xl mb-12">Select Receipient Type</p>
 
-      <div class="w-full h-[60vh] grid grid-rows-2 p-4 gap-2">
+      <div class="w-full h-[50vh] grid grid-rows-2 p-4 gap-2">
         
         <div 
           @click="selectType('username')" 

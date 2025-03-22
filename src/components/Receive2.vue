@@ -120,7 +120,7 @@
                         </template>
                         <template v-else>
                             <span class="mr-4">Signing...</span>
-                            <iconify-icon class="text-4xl animate-[spin_3s]" icon="mage:dots-menu" />
+                            <iconify-icon class="text-4xl animate-[spin_3s_linear_infinite]" icon="mage:dots-menu" />
                         </template>
                     </button>
 
@@ -135,6 +135,12 @@
                 </div>
             </template>
 
+        </div>
+
+        <div v-if="submitSuccess" class="w-full p-4">
+            <button @click="done" class="bg-white text-black rounded-xl p-4 text-lg hover:bg-white/10 active:bg-white/20 transition-colors w-full">
+                <p>Done</p>
+            </button>
         </div>
 
         <Teleport to="body">
@@ -217,7 +223,7 @@ const payerEmbedding = ref(null);
 const payerUsername = ref(null);
 const payerPattern = ref(null);
 
-
+const emit = defineEmits(['close']);
 
 const handleKeyPress = (key) => {
     if (key === '←') {
@@ -540,18 +546,16 @@ const handleEdit = () => {
     submitSuccess.value = false;
 }
 
+const handleClose = () => {
+    console.log('handleClose called');
+    closeReceive();
+    emit('close');
+}
+
 const handleSignOutAndCancel = () => {
-    // isVerified.value = false;
-    // accountFound.value = false;
-    // isDetectingFace.value = true
-    // isEditMode.value = true
-    // videoRef.value = null;
-    // clearInterval(detectInterval)
-    // amount.value = ''
-
+    console.log('handleSignOutAndCancel called');
+    closeReceive();
     document.getElementById(`close-receive`).click();
-    resetReceive();
-
 }
 
 const clickDialog = () => {
@@ -559,16 +563,34 @@ const clickDialog = () => {
     showPatternDialog.value = true;
 }
 
-const resetReceive = () => {
+const done = (event) => {
+    console.log('done called');
+    closeReceive();
+    document.getElementById(`close-receive`).click();
+}
 
+const closeReceive = () => {
+    console.log('closeReceive called');
     // Stop all video tracks from the stream
     if (videoRef.value && videoRef.value.srcObject) {
-        console.log('stopping video tracks')
+        console.log('Found videoRef and srcObject, stopping tracks...');
         const tracks = videoRef.value.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
+        console.log('Found tracks:', tracks.length);
+        tracks.forEach(track => {
+            console.log('Stopping track:', track.kind, track.label);
+            track.stop();
+        });
         videoRef.value.srcObject = null;
-        console.log('video tracks stopped')
+        console.log('Video tracks stopped and srcObject cleared');
+    } else {
+        console.log('No videoRef or srcObject found to clean up');
     }
+    clearInterval(detectInterval);
+}
+
+const resetReceive = () => {
+    console.log('resetReceive called');
+    closeReceive();
 
     isVerified.value = false;
     accountFound.value = false;
@@ -580,17 +602,26 @@ const resetReceive = () => {
     showPatternDialog.value = false
     submitSuccess.value = false
     submitBusy.value = false
+    payerUsername.value = null
+    payerPattern.value = null
+    payerEmbedding.value = null
 }
 
 onBeforeUnmount(() => {
-    console.log('onBeforeUnmount')
+    console.log('onBeforeUnmount called');
     resetReceive();
 })
 
 onUnmounted(() => {
-    console.log('onUnmounted')
+    console.log('onUnmounted called');
     resetReceive();
 })
+
+// Expose closeReceive to parent
+defineExpose({
+    closeReceive,
+    resetReceive
+});
 
 </script>
 

@@ -56,11 +56,11 @@ const cachedTop = ref(0);
 
 const content = ref(null);
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'open']);
 
 const clickHandler = (event) => {
   const buttonRect = buttonText.value.getBoundingClientRect();
-  console.log(buttonRect);
+  console.log('ExpandableButton clickHandler called, expanded:', !expanded.value);
   cachedLeft.value = `${buttonRect.left + buttonRect.width / 2}px`;
   cachedTop.value = `${buttonRect.top + buttonRect.height / 2}px`;
 
@@ -83,7 +83,11 @@ const clickHandler = (event) => {
       duration: 300,
       easing: "linear",
     });
+
+    // Emit open event when button is expanded
+    emit('open');
   } else {
+    console.log('ExpandableButton closing, emitting close event');
     expanderStyle.left = `${cachedLeft.value}px`;
     expanderStyle.top = `${cachedTop.value}px`;
 

@@ -53,10 +53,10 @@
         </div>
       </div>
 
-      <div @click="tapToRefreshBalance" class="w-full h-full flex justify-center items-center flex-col">
+      <div @click="tapToRefreshBalance('wave')" class="w-full h-full flex justify-center items-center flex-col">
         <p class="text-2xl font-doto mb-4">Base USDC Balance</p>
         
-        <div v-if="isLoading" class="grid grid-cols-3 text-9xl font-doto">
+        <div v-if="isLoading && refreshAnimation === 'wave'" class="grid grid-cols-3 text-9xl font-doto">
           <div class="animate-wave-1">.</div>
           <div class="animate-wave-2">.</div>
           <div class="animate-wave-3">.</div>
@@ -65,7 +65,7 @@
           {{ usdcBalance }}
         </div>
 
-        <iconify-icon :class="isLoading ? 'scale-0' : 'scale-100'" icon="pixelarticons:loader" class="text-5xl text-black/30 my-4 duration-300"></iconify-icon>
+        <iconify-icon :class="isLoading ? ( refreshAnimation === 'wave' ? 'scale-0' : 'animate-spin' ) : 'scale-100'" icon="pixelarticons:loader" class="text-5xl text-black/30 my-4 duration-300"></iconify-icon>
       </div>
 
       
@@ -73,23 +73,17 @@
       <div class="flex flex-col gap-1 w-full mb-8">
         <!-- <button @click="isSendDialogOpen = true" class="bg-black text-white font-bold text-xl p-4 py-6 rounded-full w-full">Send</button> -->
 
-        <ExpandableButton :button-id="'receive'" @close="tapToRefreshBalance">
+        <ExpandableButton :button-id="'receive'" @close="handleReceiveClose" @open="handleReceiveOpen">
           <template #button_text>Receive</template>
 
           <template #content>
-            <Receive2 />
+            <Receive2 ref="receiveRef" @close="handleReceiveClose" />
           </template>
         </ExpandableButton>
 
-        <ExpandableButton :button-id="'deposit'" @close="tapToRefreshBalance">
-          <template #button_text>Deposit</template>
+        
 
-          <template #content>
-            <Deposit />
-          </template>
-        </ExpandableButton>
-
-        <ExpandableButton :button-id="'send'" @close="tapToRefreshBalance">
+        <ExpandableButton :button-id="'send'" @close="tapToRefreshBalance('spinner')">
           <template #button_text>Send</template>
 
           <template #content>
@@ -97,7 +91,15 @@
           </template>
         </ExpandableButton>
 
-        <ExpandableButton @close="tapToRefreshBalance">
+        <ExpandableButton :button-id="'deposit'" @close="tapToRefreshBalance('spinner')">
+          <template #button_text>Deposit</template>
+
+          <template #content>
+            <Deposit />
+          </template>
+        </ExpandableButton>
+
+        <ExpandableButton @close="tapToRefreshBalance('spinner')">
           <template #button_text>History</template>
 
           <template #content>
@@ -249,6 +251,10 @@ const isFreshLogin = ref(false);
 const isRefreshing = ref(false);
 const isLoading = ref(true);
 const isUpdating = ref(false);
+
+const refreshAnimation = ref('wave');
+
+const receiveRef = ref(null);
 
 onMounted(async () => {
   /// get face embedding from local storage
@@ -492,7 +498,8 @@ const handleLockWallet = () => {
   patternPadRef.value?.clearPattern();
 }
 
-const tapToRefreshBalance = async () => {
+const tapToRefreshBalance = async (animation) => {
+  refreshAnimation.value = animation;
   if (!isLoading.value) {
     await getBalance();
   }
@@ -501,8 +508,25 @@ const tapToRefreshBalance = async () => {
 const handleMenuClose = () => {
   isMenuOpen.value = false;
   if (!isLoading.value) {
-    tapToRefreshBalance();
+    tapToRefreshBalance('spinner');
   }
+}
+
+const handleReceiveOpen = () => {
+    console.log('Wallet2: handleReceiveOpen called');
+    if (receiveRef.value) {
+        console.log('Wallet2: Found receiveRef, calling resetReceive');
+        receiveRef.value.resetReceive();
+    }
+}
+
+const handleReceiveClose = () => {
+    console.log('Wallet2: handleReceiveClose called');
+    if (receiveRef.value) {
+        console.log('Wallet2: Found receiveRef, calling closeReceive');
+        receiveRef.value.closeReceive();
+    }
+    tapToRefreshBalance('spinner');
 }
 
 </script>
