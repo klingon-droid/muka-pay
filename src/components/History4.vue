@@ -45,14 +45,24 @@
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue';
+    import { ref, onMounted, watch } from 'vue';
     const currentUsername = ref(null);
-    import { username, getUsernameHash } from '../stores/user';
+    import { username, getUsernameHash, refreshBalance } from '../stores/user';
     import { formatUnits, isAddress } from 'viem';
+    import { useStore } from '@nanostores/vue';
 
     onMounted(async () => {
         currentUsername.value = username.value;
         // currentUsername.value = 'yongfeng';
+        fetchHistory();
+    })
+
+    const refreshBalanceStore = useStore(refreshBalance);
+    watch(refreshBalanceStore, async () => {
+        fetchHistory();
+    })
+
+    const fetchHistory = async () => {
         const response = await fetch(`/api/history/${currentUsername.value}`);
         const data = await response.json();
         console.log('history data:', data);
@@ -76,7 +86,8 @@
                 date: history.block_time
             });
         }
-    })
+
+    }
 
 
     const transactions = ref([]);
