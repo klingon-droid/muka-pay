@@ -565,6 +565,9 @@ const clickDialog = () => {
 
 const done = (event) => {
     console.log('done called');
+    if (detectInterval) {
+        clearInterval(detectInterval);
+    }
     closeReceive();
     document.getElementById(`close-receive`).click();
 }
