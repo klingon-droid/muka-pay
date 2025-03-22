@@ -6,7 +6,9 @@
                 class="relative flex items-center justify-center">
                 <div :class="[
                     'w-8 h-8 rounded-full transition-all duration-200',
-                    selectedDots.includes(i-1) ? 'bg-black scale-75' : 'bg-gray-300'
+                    selectedDots.includes(i-1) 
+                        ? color === 'black' ? 'bg-black scale-75' : 'bg-white scale-75' 
+                        : color === 'black' ? 'bg-gray-300' : 'bg-gray-600'
                 ]"></div>
             </div>
         </div>
@@ -28,6 +30,14 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
+
+const props = defineProps({
+    color: {
+        type: String,
+        default: 'black',
+        validator: (value) => ['black', 'white'].includes(value)
+    }
+});
 
 const emit = defineEmits(['pattern-complete']);
 
@@ -166,18 +176,24 @@ const drawFrozenPattern = () => {
     
     ctx.value.beginPath();
     
-    // Create gradient
+    // Create gradient based on color prop
     const gradient = ctx.value.createLinearGradient(0, 0, canvas.value.width, canvas.value.height);
-    gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
-    gradient.addColorStop(0.5, 'rgba(40, 40, 40, 0.8)');
-    gradient.addColorStop(1, 'rgba(80, 80, 80, 0.9)');
+    if (props.color === 'black') {
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        gradient.addColorStop(0.5, 'rgba(40, 40, 40, 0.8)');
+        gradient.addColorStop(1, 'rgba(80, 80, 80, 0.9)');
+    } else {
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.5, 'rgba(200, 200, 200, 0.8)');
+        gradient.addColorStop(1, 'rgba(180, 180, 180, 0.9)');
+    }
     
     ctx.value.strokeStyle = gradient;
     ctx.value.lineWidth = 12;
     ctx.value.lineCap = 'round';
     ctx.value.lineJoin = 'round';
     
-    ctx.value.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.value.shadowColor = props.color === 'black' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)';
     ctx.value.shadowBlur = 10;
     ctx.value.shadowOffsetX = 2;
     ctx.value.shadowOffsetY = 4;
@@ -211,18 +227,24 @@ const drawPattern = (currentPoint = null) => {
     
     ctx.value.beginPath();
     
-    // Create gradient
+    // Create gradient based on color prop
     const gradient = ctx.value.createLinearGradient(0, 0, canvas.value.width, canvas.value.height);
-    gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
-    gradient.addColorStop(0.5, 'rgba(40, 40, 40, 0.8)');
-    gradient.addColorStop(1, 'rgba(80, 80, 80, 0.9)');
+    if (props.color === 'black') {
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        gradient.addColorStop(0.5, 'rgba(40, 40, 40, 0.8)');
+        gradient.addColorStop(1, 'rgba(80, 80, 80, 0.9)');
+    } else {
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.5, 'rgba(200, 200, 200, 0.8)');
+        gradient.addColorStop(1, 'rgba(180, 180, 180, 0.9)');
+    }
     
     ctx.value.strokeStyle = gradient;
     ctx.value.lineWidth = 12;
     ctx.value.lineCap = 'round';
     ctx.value.lineJoin = 'round';
     
-    ctx.value.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.value.shadowColor = props.color === 'black' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)';
     ctx.value.shadowBlur = 10;
     ctx.value.shadowOffsetX = 2;
     ctx.value.shadowOffsetY = 4;

@@ -1,9 +1,17 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Wallet from "../components/Wallet.vue";
+// import Wallet from "../components/Wallet.vue";
+import Wallet2 from "../components/Wallet2.vue";
 ---
 
 <Layout>
+
+  <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+  </head>
+
   <script>
     import { Buffer } from "buffer";
 
@@ -12,5 +20,6 @@ import Wallet from "../components/Wallet.vue";
     }
   </script>
 
-  <Wallet client:only="vue" />
+  <!-- <Wallet client:only="vue" /> -->
+  <Wallet2 client:only="vue" />
 </Layout>

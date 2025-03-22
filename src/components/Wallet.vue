@@ -1,18 +1,19 @@
 <template>
-    <div class="w-full h-screen grid grid-rows-2">
+    <div class="w-full h-screen grid grid-rows-2 font-lexend">
 
-        <div class="h-full flex justify-center items-center flex-col relative bg-[#FFE42B]">
+        <div class="h-full flex justify-center items-center flex-col relative ">
 
             <div class="flex justify-center items-center flex-col grow -mt-8">
-                <p class="text-yellow-700 mb-2">balance</p>
-                <p class="text-6xl font-bold mb-8">{{ usdcBalance }}</p>
+                <p class="text-black mb-2">balance</p>
+                <p class="text-[20vw] font-doto">{{ usdcBalance }}</p>
 
-                <div class="bg-black px-1 py-1 pr-3 rounded-full text-white">
+                <!-- <div class="bg-black px-1 py-1 pr-3 rounded-full text-white">
                     <div class="flex items-center gap-2">
                         <iconify-icon class="text-3xl" icon="token:base"></iconify-icon>
                         USDC
                     </div>
-                </div>
+                </div> -->
+                <p class="font-doto text-3xl text-blue-500">Base USDC</p>
             </div>
 
             <div class="absolute bottom-0 p-4 flex justify-between w-full items-center">
@@ -24,9 +25,9 @@
 
                 <div class="flex justify-end items-center gap-2">
 
-                    <!-- <button class="bg-white text-black text-3xl w-12 h-12 flex justify-center items-center space-x-1 rounded-full">
+                    <button class="bg-white text-black text-3xl w-12 h-12 flex justify-center items-center space-x-1 rounded-full">
                         <iconify-icon icon="mdi:hamburger-menu"></iconify-icon>
-                    </button> -->
+                    </button>
 
                     <button class="bg-red-500 text-white text-2xl w-12 h-12 flex justify-center items-center space-x-1 rounded-full">
                         <iconify-icon icon="mdi:logout"></iconify-icon>
@@ -120,3 +121,21 @@ const gotoDeposit = () => {
 }
 
 </script>
+
+<style>
+.font-lexend {
+    font-family: "Lexend", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    font-variation-settings: "wdth" 100;
+}
+
+.font-doto {
+    font-family: "Doto", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-style: normal;
+    font-variation-settings: "wdth" 100;
+}
+</style>
