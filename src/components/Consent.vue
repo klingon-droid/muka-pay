@@ -2,10 +2,14 @@
   <main class="w-screen h-screen font-lexend flex flex-col justify-between overflow-hidden bg-gray-50/50">
     <!-- Top section with logo and title -->
     <div class="w-full flex justify-center items-center flex-col pt-12">
-      <div 
+      <!-- <div 
         class="w-20 h-20 bg-black rounded-2xl shadow-lg mb-4 text-white text-center font-doto text-4xl flex justify-center items-center transform hover:rotate-12 transition-all duration-500"
       >
         S;P
+      </div> -->
+
+      <div class="w-20 h-20">
+        <img src="/logo.png" alt="Snap Pay" class="w-full h-full object-contain">
       </div>
 
       <div class="text-center mb-4">
