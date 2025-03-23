@@ -356,6 +356,7 @@ onMounted(async () => {
   // Watch the store value
   watch(refreshBalanceStore, (newValue) => {
     console.log("refreshBalance changed to:", newValue);
+    console.log('refreshBalanceStore getBalance')
     if (currentUsername.value) {
       getBalance();
     }

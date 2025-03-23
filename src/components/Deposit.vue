@@ -101,7 +101,7 @@
           <div v-if="isConnectedStore" class="w-full flex justify-end items-center mb-4">
             <div class="flex items-center gap-2 text-sm text-white/50">
               <span>Balance: {{ usdcBalance }} USDC</span>
-              <button @click="refreshBalance"
+              <button @click="refreshUsdcBalance"
                       class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center"
                       :disabled="isRefreshingBalance">
                 <iconify-icon :class="{ 'animate-spin': isRefreshingBalance }" icon="mdi:refresh" class="text-white text-xl" />
@@ -195,7 +195,8 @@
       getUsernameHash, 
       VAULT_ABI, 
       username,
-      wagmiConfig 
+      wagmiConfig,
+      refreshBalance
     } from '../stores/user'
     import { getAccount, writeContract, waitForTransactionReceipt, readContract } from '@wagmi/core'
     import { base } from 'wagmi/chains'
@@ -248,7 +249,7 @@
         }
     };
 
-    const refreshBalance = () => {
+    const refreshUsdcBalance = () => {
         fetchUSDCBalance();
     };
 
@@ -379,6 +380,7 @@
             })
 
             console.log('receipt:', receipt)
+            refreshBalance.set(Date.now());
 
             isAmountConfirmed.value = false;
             isApprovalSufficient.value = false;

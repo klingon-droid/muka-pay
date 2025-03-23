@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-    import { ref, onMounted, watch } from 'vue';
+    import { ref, onMounted, watch, onActivated } from 'vue';
     const currentUsername = ref(null);
     import { username, getUsernameHash, refreshBalance } from '../stores/user';
     import { formatUnits, isAddress } from 'viem';
@@ -56,12 +56,18 @@
     onMounted(async () => {
         currentUsername.value = username.value;
         // currentUsername.value = 'famcafe';
-        console.log(currentUsername.value, await getUsernameHash(currentUsername.value))
+        // console.log(currentUsername.value, await getUsernameHash(currentUsername.value))
+        fetchHistory();
+    })
+
+    onActivated(async () => {
+        console.log('onActivated')
         fetchHistory();
     })
 
     const refreshBalanceStore = useStore(refreshBalance);
     watch(refreshBalanceStore, async () => {
+        console.log('refreshBalanceStore fetchHistory')
         fetchHistory();
     })
 
@@ -74,6 +80,8 @@
         const outTypes = ['paid', 'withdrawn']
         const inTypes = ['deposited']
 
+
+        transactions.value = [];
         for(let history of data?.history) {
             if(history.event === 'registered') {
                 continue;
@@ -85,6 +93,7 @@
             } else {
                 _type = userHash === history?.to_user ? 'receive' : 'send';
             }
+            
             
             transactions.value.push({
                 id: history.tx_hash,
