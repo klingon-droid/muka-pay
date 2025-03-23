@@ -92,13 +92,13 @@ export const wagmiConfig = createConfig({
   connectors: [
     injected(),
     walletConnect({
-      projectId: '1c8fb9d82e157d955cb7a335201c0a8e',
+      projectId: 'a55bcf3f2dffbf18635ad54280b33547',
       showQrModal: true,
       metadata: {
         name: 'snappay',
-        description: 'AppKit Example',
-        url: 'https://reown.com/appkit',
-        icons: ['https://assets.reown.com/reown-profile-pic.png']
+        description: 'Snap Pay',
+        url: 'https://snappay.ing',
+        icons: ['https://snappay.ing/logo.png']
       },
       qrModalOptions: {
         themeMode: 'dark',
