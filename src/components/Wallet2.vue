@@ -171,17 +171,17 @@
                   <p class="text-lg text-gray-500">Things in here are quite spicy, be careful!</p>
                 </div>
 
-                <div class="flex flex-col space-y-2 divide-y divide-gray-500 border-y border-gray-500">
+                <div class="flex flex-col space-y-1 divide-y divide-gray-500 border-y border-gray-500">
                   <button 
                     @click="handleLogout" 
-                    class="text-black font-bold text-xl p-3 py-6 w-full underline"
+                    class="text-black font-bold text-lg p-2 py-3 w-full underline"
                   >
                     Logout
                   </button>
                   
                   <button 
                     @click="handleDeleteAccount" 
-                    class=" text-black underline font-bold text-xl p-3 py-6 w-full"
+                    class="text-black underline font-bold text-lg p-2 py-3 w-full"
                   >
                     Delete Account
                   </button>
@@ -189,22 +189,40 @@
                   <button 
                     @click="handleCheckUpdate" 
                     :disabled="isUpdating"
-                    class="text-black underline font-bold text-xl p-3 py-6 w-full flex items-center justify-center gap-2"
+                    class="text-black underline font-bold text-lg p-2 py-3 w-full flex items-center justify-center gap-2"
                   >
                     <template v-if="!isUpdating">
                       Force Update
                     </template>
                     <template v-else>
-                      <iconify-icon class="text-2xl animate-spin" icon="pixelarticons:loader" />
+                      <iconify-icon class="text-xl animate-spin" icon="pixelarticons:loader" />
                       Updating...
                     </template>
                   </button>
 
                   <button 
                     @click="handleLockWallet" 
-                    class="text-black underline font-bold text-xl p-3 py-6 w-full"
+                    class="text-black underline font-bold text-lg p-2 py-3 w-full"
                   >
                     Lock Wallet
+                  </button>
+
+                  <button 
+                    v-if="showInstallPrompt"
+                    @click="installPWA"
+                    class="text-black underline font-bold text-lg p-2 py-3 w-full flex items-center justify-center gap-2"
+                  >
+                    <iconify-icon icon="mdi:download" class="text-xl" />
+                    Install App
+                  </button>
+
+                  <button 
+                    v-if="isIOS"
+                    @click="handleIOSInstall"
+                    class="text-black underline font-bold text-lg p-2 py-3 w-full flex items-center justify-center gap-2"
+                  >
+                    <iconify-icon icon="mdi:apple" class="text-xl" />
+                    Install on iOS
                   </button>
                 </div>
 
@@ -254,6 +272,9 @@ const isSendDialogOpen = ref(false);
 const isHistoryDialogOpen = ref(false);
 const isMenuOpen = ref(false);
 const patternPadRef = ref(null);
+const deferredPrompt = ref(null);
+const isIOS = ref(false);
+const showInstallPrompt = ref(false);
 
 const refreshBalanceStore = useStore(refreshBalance);
 
@@ -386,6 +407,10 @@ onMounted(async () => {
     walletAccount.set(account);
     isConnected.value = account.isConnected;
   }
+
+  checkIOS();
+  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  window.addEventListener('appinstalled', handleAppInstalled);
 });
 
 // Clean up event listeners
@@ -393,6 +418,8 @@ onUnmounted(() => {
     window.removeEventListener('connect-wallet', connectWallet);
     window.removeEventListener('disconnect-wallet', disconnectWallet);
     window.removeEventListener('switch-to-base', switchToBase);
+    window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.removeEventListener('appinstalled', handleAppInstalled);
 });
 
 // Add these helper functions at the top of your script section
@@ -670,6 +697,40 @@ const handleFaucet = () => {
 
 
 }
+
+// Add PWA installation handlers
+const handleBeforeInstallPrompt = (e) => {
+  e.preventDefault();
+  deferredPrompt.value = e;
+  showInstallPrompt.value = true;
+};
+
+const handleAppInstalled = () => {
+  deferredPrompt.value = null;
+  showInstallPrompt.value = false;
+};
+
+const installPWA = async () => {
+  if (!deferredPrompt.value) return;
+  
+  deferredPrompt.value.prompt();
+  const { outcome } = await deferredPrompt.value.userChoice;
+  if (outcome === 'accepted') {
+    deferredPrompt.value = null;
+    showInstallPrompt.value = false;
+  }
+};
+
+// Check if running on iOS/Safari
+const checkIOS = () => {
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  isIOS.value = /iphone|ipad|ipod/.test(userAgent) && !window.MSStream;
+};
+
+const handleIOSInstall = () => {
+  isMenuOpen.value = false;
+  alert('To install the app:\n1. Tap the share button in Safari\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" to confirm');
+};
 
 </script>
 

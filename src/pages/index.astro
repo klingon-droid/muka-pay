@@ -27,11 +27,15 @@ import Wallet2 from "../components/Wallet2.vue";
 
     // const vConsole = new VConsole();
 
-    const refreshButton = document.getElementById('refresh-button');
-    if (refreshButton) {
-      refreshButton.addEventListener('click', () => {
-        window.location.reload();
-      });
+    try {
+      const refreshButton = document.getElementById('refresh-button');
+      if (refreshButton) {
+        refreshButton.addEventListener('click', () => {
+          window.location.reload();
+        });
+      }
+    } catch (error) {
+      console.error('Error adding refresh button listener:', error);
     }
   </script>
 
