@@ -233,7 +233,7 @@ import ExpandableButton from "./ExpandableButton.vue";
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
 import { registerSW } from 'virtual:pwa-register'
 import { getAccount, getConnectors, connect, disconnect, switchChain, reconnect } from '@wagmi/core'
-import { baseSepolia } from 'wagmi/chains'
+import { base } from 'wagmi/chains'
 
 import Gate2 from "./Gate2.vue";
 
@@ -321,7 +321,7 @@ const disconnectWallet = () => {
 }
 
 const switchToBase = () => {
-    switchChain(wagmiConfig, { chainId: baseSepolia.id })
+    switchChain(wagmiConfig, { chainId: base.id })
     const account = getAccount(wagmiConfig)
     if(account) {
         console.log('account:', account)
@@ -331,7 +331,7 @@ const switchToBase = () => {
 }
 
 const isBaseNetwork = computed(() => {
-    return walletAccountStore?.value?.chainId === baseSepolia.id;
+    return walletAccountStore?.value?.chainId === base.id;
 })
 
 onMounted(async () => {
