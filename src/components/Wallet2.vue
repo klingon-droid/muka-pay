@@ -1,5 +1,5 @@
 <template>
-  <div :class="[isLocked ? (isFreshLogin ? 'bg-white' : 'p-2') : 'grid grid-cols-1 grid-rows-[auto_1fr_auto]']" class="w-full h-screen font-lexend bg-white relative z-[60]">
+  <div :class="[isLocked ? (isFreshLogin ? 'bg-white' : 'p-2') : 'grid grid-cols-1 grid-rows-[auto_1fr_auto]']" class="w-full h-[100dvh] font-lexend bg-white relative z-[60]">
     <template v-if="isLocked">
 
       <template v-if="isFreshLogin">
