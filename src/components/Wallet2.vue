@@ -24,8 +24,8 @@
               <PatternPad2 ref="patternPadRef" color="white" @pattern-complete="handlePatternComplete" />
             </div>
     
-            <div>
-              <button @click="deleteLocalStorage()" class="bg-white text-black font-bold text-lg px-6 py-4 rounded-full w-full">Reset Account</button>
+            <div class="w-full flex">
+              <button @click="deleteLocalStorage()" class="bg-white text-black font-bold text-lg px-4 py-2 rounded-full w-full z-[999]">Reset Account</button>
             </div>
           </div>
         </div>
@@ -574,8 +574,9 @@ async function deletePineconeRecord(id) {
 
 const deleteLocalStorage = () => {
   console.log('deleteLocalStorage called')
-  // localStorage.removeItem('mukapay-face');
+  localStorage.removeItem('mukapay-face');
   // window.location.href = '/';
+  window.location.reload();
 }
 
 const handleLogout = () => {
