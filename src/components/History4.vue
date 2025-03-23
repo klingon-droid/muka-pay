@@ -1,8 +1,19 @@
 <template>
   <div class="w-full h-full overflow-y-auto">
     
-    <nav class="w-full text-center text-white mt-22 p-6 font-doto text-4xl">
-        History
+    <nav class="w-full text-center text-white mt-22 p-6 font-doto flex justify-between items-center">
+        <div class="w-12"><!-- Empty div for alignment --></div>
+        <div class="text-4xl">History</div>
+        <button 
+            @click="fetchHistory" 
+            class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 transition duration-150"
+            :class="{ 'animate-spin': isLoading }"
+        >
+            <iconify-icon 
+                icon="pixelarticons:reload" 
+                class="text-2xl text-white/70"
+            ></iconify-icon>
+        </button>
     </nav>
 
     <div class="w-full divide-y divide-white/20">
