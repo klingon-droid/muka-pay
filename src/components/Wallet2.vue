@@ -384,6 +384,21 @@ onMounted(async () => {
     isFreshLogin.value = true;
   }
 
+  try{
+
+    let loader = document.getElementById('loading-container');
+
+    if(loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => {
+        loader.style.display = 'none';
+      }, 1000);
+    }
+
+  } catch(error) {
+    console.error('Error fetching face embedding:', error);
+  }
+
   // Watch the store value
   watch(refreshBalanceStore, (newValue) => {
     console.log("refreshBalance changed to:", newValue);
