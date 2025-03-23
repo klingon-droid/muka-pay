@@ -217,7 +217,16 @@
                   </button>
 
                   <button 
-                    v-if="isIOS"
+                    v-if="isPWAInstalled"
+                    disabled
+                    class="text-gray-400 font-bold text-lg p-2 py-3 w-full flex items-center justify-center gap-2"
+                  >
+                    <iconify-icon icon="mdi:check-circle" class="text-xl" />
+                    App Installed
+                  </button>
+
+                  <button 
+                    v-if="isIOS && !isPWAInstalled"
                     @click="handleIOSInstall"
                     class="text-black underline font-bold text-lg p-2 py-3 w-full flex items-center justify-center gap-2"
                   >
@@ -275,6 +284,7 @@ const patternPadRef = ref(null);
 const deferredPrompt = ref(null);
 const isIOS = ref(false);
 const showInstallPrompt = ref(false);
+const isPWAInstalled = ref(false);
 
 const refreshBalanceStore = useStore(refreshBalance);
 
@@ -398,8 +408,15 @@ onMounted(async () => {
   }
 
   checkIOS();
+  checkPWAInstallation();
   window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   window.addEventListener('appinstalled', handleAppInstalled);
+  
+  // Add listener for display mode changes
+  window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+    isPWAInstalled.value = e.matches;
+    showInstallPrompt.value = !e.matches;
+  });
 });
 
 // Clean up event listeners
@@ -409,6 +426,7 @@ onUnmounted(() => {
     window.removeEventListener('switch-to-base', switchToBase);
     window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.removeEventListener('appinstalled', handleAppInstalled);
+    window.matchMedia('(display-mode: standalone)').removeEventListener('change', () => {});
 });
 
 // Add these helper functions at the top of your script section
@@ -719,6 +737,23 @@ const checkIOS = () => {
 const handleIOSInstall = () => {
   isMenuOpen.value = false;
   alert('To install the app:\n1. Tap the share button in Safari\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" to confirm');
+};
+
+// Add this function to check if the app is installed
+const checkPWAInstallation = () => {
+  // Check if the app is running in standalone mode
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    isPWAInstalled.value = true;
+    showInstallPrompt.value = false;
+  }
+  
+  // For iOS, we can check if the app is installed by checking if it's running in standalone mode
+  if (isIOS.value) {
+    if (window.navigator.standalone) {
+      isPWAInstalled.value = true;
+      showInstallPrompt.value = false;
+    }
+  }
 };
 
 </script>

@@ -39,7 +39,7 @@ import Wallet2 from "../components/Wallet2.vue";
     }
   </script>
 
-  <div id="loading-container" class="fixed inset-0 flex items-center justify-center  z-[50] bg-white">
+  <div id="loading-container" class="fixed inset-0 flex items-center justify-center bg-white">
     <div class="flex flex-col items-center space-y-8">
 
 		<img src="/logo.png" alt="logo" class="w-[10rem] h-[10rem]">
@@ -58,10 +58,13 @@ import Wallet2 from "../components/Wallet2.vue";
     
   </div>
 
+  <main class="fixed top-0 left-0 z-[50] w-screen h-[100dvh] overflow-hidden">
+    <Wallet2 client:only="vue" />
+  </main>
+
  
 
 
-  <Wallet2 client:only="vue" />
 
 </Layout>
 
