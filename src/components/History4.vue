@@ -28,6 +28,8 @@
                             <span class="font-doto text-xl ml-2">{{ isAddress(transaction.counterparty) ? transaction.counterparty.slice(0, 6) + '...' + transaction.counterparty.slice(-4) : '@' + transaction.counterparty.slice(0, 6) + '...' + transaction.counterparty.slice(-4) }}</span>
                         </p>
                         <p class="text-sm text-white/30">{{ formatDate(transaction.date) }}</p>
+
+                        <!-- <p class="text-sm text-white">{{ transaction.raw }}</p> -->
                     </div>
                 </div>
                 <div :class="[
@@ -54,6 +56,7 @@
     onMounted(async () => {
         currentUsername.value = username.value;
         // currentUsername.value = 'yongfeng';
+        console.log(currentUsername.value, await getUsernameHash(currentUsername.value))
         fetchHistory();
     })
 
@@ -66,6 +69,7 @@
         const response = await fetch(`/api/history/${currentUsername.value}`);
         const data = await response.json();
         console.log('history data:', data);
+        const userHash = await getUsernameHash(currentUsername.value);
 
         const outTypes = ['paid', 'withdrawn']
         const inTypes = ['deposited']
@@ -74,16 +78,26 @@
             if(history.event === 'registered') {
                 continue;
             }
+
+            let _type = outTypes.includes(history.event) ? 'send' : 'receive';
+            if(history.event === 'deposited') {
+                _type = 'receive';
+            } else {
+                _type = userHash === history?.to_user ? 'receive' : 'send';
+            }
+            
             transactions.value.push({
                 id: history.tx_hash,
                 tx_hash: history.tx_hash,
                 event: history.event,
-                type: outTypes.includes(history.event) ? 'send' : 'receive',
+                // type: outTypes.includes(history.event) ? 'send' : 'receive',
+                type: _type,
                 from_user: history?.from_user,
                 to_user: history?.to_user,
-                counterparty: (await getUsernameHash(currentUsername.value)) === history?.to_user ? history?.from_user : history?.to_user,
+                counterparty: userHash === history?.to_user ? history?.from_user : history?.to_user,
                 amount: formatUnits(String(history.amount), 6),
-                date: history.block_time
+                date: history.block_time,
+                raw: history,
             });
         }
 
