@@ -464,8 +464,9 @@ async function deletePineconeRecord(id) {
 }
 
 const deleteLocalStorage = () => {
-  localStorage.removeItem('mukapay-face');
-  window.location.href = '/';
+  console.log('deleteLocalStorage called')
+  // localStorage.removeItem('mukapay-face');
+  // window.location.href = '/';
 }
 
 const handleLogout = () => {
@@ -488,6 +489,9 @@ const handleDeleteAccount = async () => {
 
   // let answer = confirm('Are you sure you want to delete your account?')
   // if(!answer) return;
+
+  console.log('matchedEmbedding.value', matchedEmbedding.value, !matchedEmbedding.value)
+  // return;
 
   if(!matchedEmbedding.value) {
     deleteLocalStorage();
@@ -512,6 +516,7 @@ const handleLoginSuccess = (username) => {
   setUsername(username);
     currentUsername.value = username;
     isLocked.value = false;
+    matchedEmbedding.value = localStorage.getItem('mukapay-face');
     getBalance();
 }
 
