@@ -73,7 +73,7 @@
     
                     <div class="w-full flex flex-col justify-center items-center px-8 space-y-4">
                         <input type="text" v-model="username" class="w-full p-4 rounded-full text-2xl border border-gray-300 placeholder:text-center text-center" placeholder="Enter your username...">
-                        <button @click="register_step = 3" class="bg-black text-white px-8 py-4 rounded-full text-2xl w-full">Next</button>
+                        <button @click="submitUsername()" class="bg-black text-white px-8 py-4 rounded-full text-2xl w-full">Next</button>
                     </div>
                 </div>
     
@@ -1002,6 +1002,21 @@
             return null;
             // throw error;
         }
+    }
+
+
+    const submitUsername = async () => {
+
+        const response = await fetch(`/api/${username.value}`);
+        const data = await response.json();
+        console.log('data:', data);
+
+        if(!data.exists) {
+            register_step.value = 3
+        } else {
+            alert('Username already exists')
+        }
+        // register_step.value = 3
     }
 
 </script>
