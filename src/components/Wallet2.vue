@@ -10,7 +10,7 @@
       </template>
 
       <template v-else>
-        <div class="bg-black w-full h-[90vh] rounded-xl">
+        <div class="bg-black w-full h-full rounded-xl">
           <div class="w-full h-full flex justify-center items-center p-8 flex-col">
             <div class="w-full text-center space-y-2">
               <p class="text-2xl font-doto text-white">Account Locked</p>
@@ -162,7 +162,7 @@
               <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
                 
 
-                <div class="text-center py-22">
+                <div class="text-center py-12">
                   <div class="mb-6">
                     <span class="text-2xl font-lexend">Hey, </span>
                     <span class="text-3xl font-doto">@{{ currentUsername }}</span>

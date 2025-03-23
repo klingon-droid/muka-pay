@@ -23,7 +23,7 @@
         
       </nav>
 
-      <div class="bg-black w-full h-[95vh] overflow-hidden rounded-2xl">
+      <div class="bg-black w-full h-full overflow-hidden rounded-2xl">
         <slot name="content"></slot>
       </div>
     </main>

@@ -31,7 +31,7 @@
             <p v-if="!isEditMode" class="text-6xl font-bold">{{ amount }} USDC</p>
             <div v-if="isEditMode" class="text-5xl font-bold break-all flex justify-center items-center flex-wrap font-doto">
                 <p v-if="amount">{{ amount }}</p>
-                <p v-else class="text-white/20 whitespace-nowrap p-4">Enter amount</p>
+                <p v-else class="text-white/20 whitespace-nowrap p-4 text-4xl">Enter amount</p>
                 <p class="ml-2 text-4xl text-white/50">Base USDC</p>
             </div>
             

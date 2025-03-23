@@ -5,9 +5,9 @@
     </nav>
     
     <div v-if="currentStep !== 'summary' && currentStep !== 'result' && currentStep !== 'type'" class="text-center space-y-8 text-white mt-22">
-      <div v-if="currentStep === 'amount'" class="text-5xl font-bold break-all flex justify-center items-center flex-wrap font-doto">
-        <p v-if="amount">{{ amount }}</p>
-        <p v-else class="text-white/20 whitespace-nowrap p-4">Enter amount</p>
+      <div v-if="currentStep === 'amount'" class="font-bold break-all flex justify-center items-center flex-wrap font-doto">
+        <p class="text-5xl" v-if="amount">{{ amount }}</p>
+        <p v-else class="text-white/20 whitespace-nowrap p-4 text-4xl">Enter amount</p>
         <p class="ml-2 text-4xl text-white/50">Base USDC</p>
       </div>
       
