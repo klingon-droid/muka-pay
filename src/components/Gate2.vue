@@ -47,7 +47,7 @@
 
         <template v-if="isNewUser">
             <template v-if="register_step == 1">
-                <div class="grow w-full flex flex-col justify-start items-center">                        
+                <div class="grow w-full flex flex-col justify-between items-center">                        
                     <div class="text-center mb-12">
                         <p class="text-4xl font-bold mb-4">Hello New Face</p>
                         <p class="text-lg">Let's get started!</p>
@@ -55,9 +55,10 @@
     
                     <button @click="register_step = 2" class="bg-black text-white px-8 py-4 rounded-full text-2xl">Register New Account</button>
     
-                    <div class="text-center absolute bottom-12 w-full">
+                    <div class="text-center w-full mt-auto mb-12">
                         <p class="text-xl font-bold">Already have an account?</p>
                         <p class="text-sm">Please center your face and come closer</p>
+                        <button @click="searchAccount" class="mt-4 bg-black text-white px-6 py-2 rounded-full text-sm">Search Account</button>
                     </div>
                 </div>
             </template>
@@ -196,8 +197,12 @@
                     <p class="text-2xl font-bold mb-2">Welcome back!</p>
                     <p>Draw your secret pattern to login</p>
 
-
                     <PatternPad2 ref="patternPadRef" @pattern-complete="handleExistingUserLogin" />
+
+                    <div class="mt-8 text-center">
+                        <p class="text-sm text-gray-600">Not you?</p>
+                        <button @click="searchAccount" class="mt-2 bg-black text-white px-6 py-2 rounded-full text-sm">Search Again</button>
+                    </div>
                 </div>
 
                 <div v-if="login_step == 2">
@@ -312,6 +317,7 @@
     const isSearchBusy = ref(false);
     const isNewUser = ref(false);
     const isNewFaceEmbeddingGenerated = ref(false);
+    const lastFaceDetectedState = ref(false);
 
 
     const register_step = ref(0);
@@ -548,20 +554,32 @@
         register_step.value = 4;
     }
 
-    watch([isNewUser, register_step], ([newIsNewUser, newRegisterStep]) => {
-        // Clear any existing interval
-        if (autoCheckInterval.value) {
-            clearInterval(autoCheckInterval.value);
-            autoCheckInterval.value = null;
+    // Watch for face detection state changes
+    watch(isFaceDetected, (newState) => {
+        if (newState && !lastFaceDetectedState.value) {
+            // Face just became detected
+            searchAccount();
+        } else if (!newState && lastFaceDetectedState.value) {
+            // Face detection lost
+            resetFormState();
         }
-
-        // Start auto-check if we're at step 1 and it's a new user
-        if (newIsNewUser && newRegisterStep === 1) {
-            autoCheckInterval.value = setInterval(() => {
-                searchAccount();
-            }, 5000); // Check every 5 seconds
-        }
+        lastFaceDetectedState.value = newState;
     });
+
+    const resetFormState = () => {
+        // Reset registration state
+        register_step.value = 0;
+        isNewUser.value = false;
+        resetRegistrationState();
+        
+        // Reset login state
+        login_step.value = 0;
+        matchedEmbedding.value = null;
+        localStorage.removeItem('mukapay-candidates');
+        
+        // Reset pattern state
+        resetPattern();
+    }
 
     // Watch for register_step 4 to start face embedding generation
     watch(register_step, (newStep) => {
