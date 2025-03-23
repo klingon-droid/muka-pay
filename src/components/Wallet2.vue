@@ -344,6 +344,17 @@ const isBaseNetwork = computed(() => {
 })
 
 onMounted(async () => {
+
+  try {
+    // remove loading container
+    let loadingContainer = document.getElementById('loading-container')
+    if (loadingContainer) {
+      loadingContainer.remove();
+    }
+  } catch (error) {
+    console.error('Error removing loading container:', error);
+  }
+
   /// get face embedding from local storage
   const faceEmbedding = localStorage.getItem("mukapay-face");
   if (faceEmbedding) {
@@ -361,12 +372,6 @@ onMounted(async () => {
       getBalance();
     }
   });
-  
-  // remove loading container
-  let loadingContainer = document.getElementById('loading-container')
-  if (loadingContainer) {
-    loadingContainer.remove();
-  }
   
   // Add wallet connection listener
   window.addEventListener('connect-wallet', connectWallet);
