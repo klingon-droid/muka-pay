@@ -453,8 +453,9 @@ async function deletePineconeRecord(id) {
         if (!response.ok) {
             throw new Error(`Failed to delete: ${response.statusText}`);
         }
-        deleteLocalStorage();
+        localStorage.removeItem('mukapay-face');
         alert('Record deleted successfully')
+        window.location.href = '/';
         return await response.json();
     } catch (error) {
         console.error('Error deleting Pinecone record:', error);
@@ -464,7 +465,7 @@ async function deletePineconeRecord(id) {
 
 const deleteLocalStorage = () => {
   localStorage.removeItem('mukapay-face');
-  window.location.href = '/app';
+  window.location.href = '/';
 }
 
 const handleLogout = () => {
@@ -485,14 +486,25 @@ const handleLogout = () => {
 
 const handleDeleteAccount = async () => {
 
-  let answer = confirm('Are you sure you want to delete your account?')
-  if(!answer) return;
+  // let answer = confirm('Are you sure you want to delete your account?')
+  // if(!answer) return;
+
+  if(!matchedEmbedding.value) {
+    deleteLocalStorage();
+    return;
+  }
+
+  console.log('handleDeleteAccount called', matchedEmbedding.value.id)
+  await deletePineconeRecord(matchedEmbedding.value.id);
+
+  return;
 
   if (matchedEmbedding.value && matchedEmbedding.value.id) {
     await deletePineconeRecord(matchedEmbedding.value.id);
   } else {
     deleteLocalStorage();
   }
+  // deleteLocalStorage();
   isMenuOpen.value = false;
 }
 
