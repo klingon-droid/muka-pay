@@ -82,13 +82,13 @@ export async function generateProof(_username, _password, _nonce = Date.now()) {
 
 
 import { createConfig, http } from 'wagmi'
-import { baseSepolia } from 'wagmi/chains'
+import { base } from 'wagmi/chains'
 import { injected, walletConnect } from 'wagmi/connectors'
 
 export const walletAccount = atom(null)
 
 export const wagmiConfig = createConfig({
-  chains: [baseSepolia],
+  chains: [base],
   connectors: [
     injected(),
     walletConnect({
@@ -113,14 +113,13 @@ export const wagmiConfig = createConfig({
     })
   ],
   transports: {
-    [baseSepolia.id]: http()
+    [base.id]: http()
   }
 })
 
 
-// export const VAULT_CONTRACT_ADDRESS = "0xB4f7dF8d5ec4C61fF41040230fCF23d167220741";
-export const VAULT_CONTRACT_ADDRESS = "0xCc0fB30f53Fd9af9f68913F337d87aA6086D6ADF";
-export const USDC_CONTRACT_ADDRESS = "0x0a6CC1B2cB197AA6a6878fee28Fd1c908B603ad4";
+export const VAULT_CONTRACT_ADDRESS = "0xacC07577A4324cf6bC12A049B33Cf906c5567099";
+export const USDC_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
 
 export const ERC20_ABI = [

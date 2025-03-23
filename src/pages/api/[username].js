@@ -5,7 +5,7 @@ export async function GET({ params }) {
     console.log('username:', username);
 
     try {
-      const response = await fetch(`https://mukapay-api.fly.dev/api/users/${username}/exists`, {
+      const response = await fetch(`https://mukapay-api-mainnet.fly.dev/api/users/${username}/exists`, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'

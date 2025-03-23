@@ -1,6 +1,6 @@
 import { atom } from 'nanostores'
 import { getAccount, getConnectors, connect, disconnect, switchChain, reconnect } from '@wagmi/core'
-import { baseSepolia } from 'wagmi/chains'
+import { base } from 'wagmi/chains'
 import { wagmiConfig } from './user'
 
 // State atoms
@@ -8,7 +8,7 @@ export const isConnected = atom(false)
 export const isConnecting = atom(false)
 export const isSwitchingNetwork = atom(false)
 export const walletAccount = atom(null)
-export const targetNetwork = atom(baseSepolia)
+export const targetNetwork = atom(base)
 export const isAutoConnecting = atom(false)
 
 // Computed atoms
@@ -39,7 +39,7 @@ export const connectWallet = async (connectorType) => {
             isConnected.set(account.isConnected)
             
             // Check if we need to switch network after connection
-            if (account.chainId !== baseSepolia.id) {
+            if (account.chainId !== base.id) {
                 window.dispatchEvent(new Event('switch-to-base'))
             }
         }
@@ -71,7 +71,7 @@ export const disconnectWallet = async () => {
 export const switchToBase = async () => {
     isSwitchingNetwork.set(true)
     try {
-        await switchChain(wagmiConfig, { chainId: baseSepolia.id })
+        await switchChain(wagmiConfig, { chainId: base.id })
         const account = getAccount(wagmiConfig)
         if(account) {
             walletAccount.set(account)
@@ -95,7 +95,7 @@ export const initializeWallet = async () => {
             isConnected.set(account.isConnected)
             
             // Check if we need to switch network after initialization
-            if (account.chainId !== baseSepolia.id) {
+            if (account.chainId !== base.id) {
                 window.dispatchEvent(new Event('switch-to-base'))
             }
         }

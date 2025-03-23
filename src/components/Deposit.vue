@@ -198,7 +198,7 @@
       wagmiConfig 
     } from '../stores/user'
     import { getAccount, writeContract, waitForTransactionReceipt, readContract } from '@wagmi/core'
-    import { baseSepolia } from 'wagmi/chains'
+    import { base } from 'wagmi/chains'
     import { formatUnits } from 'viem'
 
     // Store values
