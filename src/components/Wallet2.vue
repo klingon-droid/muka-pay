@@ -223,15 +223,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed, onUnmounted } from "vue";
 import PatternPad2 from "./PatternPad2.vue";
-import { setUsername, refreshBalance } from "../stores/user";
+import { setUsername, refreshBalance, wagmiConfig, walletAccount } from "../stores/user";
 import HistoryDialog from "./HistoryDialog.vue";
 import SendDialog from "./SendDialog.vue";
 import { useStore } from "@nanostores/vue";
 import ExpandableButton from "./ExpandableButton.vue";
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
 import { registerSW } from 'virtual:pwa-register'
+import { getAccount, getConnectors, connect, disconnect, switchChain, reconnect } from '@wagmi/core'
+import { baseSepolia } from 'wagmi/chains'
 
 import Gate2 from "./Gate2.vue";
 
@@ -294,6 +296,44 @@ const updateLoadingSymbols = () => {
   currentSymbol.value = getRandomSymbol();
 };
 
+// Add wallet connection state
+const isConnected = ref(false);
+const walletAccountStore = useStore(walletAccount);
+
+// Add wallet connection methods
+const connectWallet = async () => {
+    const _connectors = getConnectors(wagmiConfig)
+    // If window.ethereum is undefined, use WalletConnect (second connector)
+    const connector = window.ethereum ? _connectors[0] : _connectors[1]
+    await connect(wagmiConfig, { connector })
+    const account = getAccount(wagmiConfig)
+    if(account) {
+        console.log('account:', account)
+        walletAccount.set(account);
+        isConnected.value = account.isConnected;
+    }
+}
+
+const disconnectWallet = () => {
+    disconnect(wagmiConfig)
+    isConnected.value = false;
+    walletAccount.set(null);
+}
+
+const switchToBase = () => {
+    switchChain(wagmiConfig, { chainId: baseSepolia.id })
+    const account = getAccount(wagmiConfig)
+    if(account) {
+        console.log('account:', account)
+        walletAccount.set(account);
+        isConnected.value = account.isConnected;
+    }
+}
+
+const isBaseNetwork = computed(() => {
+    return walletAccountStore?.value?.chainId === baseSepolia.id;
+})
+
 onMounted(async () => {
   /// get face embedding from local storage
   const faceEmbedding = localStorage.getItem("mukapay-face");
@@ -318,6 +358,26 @@ onMounted(async () => {
     loadingContainer.remove();
   }
   
+  // Add wallet connection listener
+  window.addEventListener('connect-wallet', connectWallet);
+  window.addEventListener('disconnect-wallet', disconnectWallet);
+  window.addEventListener('switch-to-base', switchToBase);
+
+  // Reconnect wallet if previously connected
+  reconnect(wagmiConfig);
+  const account = getAccount(wagmiConfig)
+  if(account) {
+    console.log('account:', account)
+    walletAccount.set(account);
+    isConnected.value = account.isConnected;
+  }
+});
+
+// Clean up event listeners
+onUnmounted(() => {
+    window.removeEventListener('connect-wallet', connectWallet);
+    window.removeEventListener('disconnect-wallet', disconnectWallet);
+    window.removeEventListener('switch-to-base', switchToBase);
 });
 
 // Add these helper functions at the top of your script section
