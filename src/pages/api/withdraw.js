@@ -10,7 +10,7 @@ export async function POST({ request }) {
   
     try {
   
-      const url = 'https://mukapay-api.fly.dev/api/withdraw'
+      const url = 'https://mukapay-api-mainnet.fly.dev/api/withdraw'
       
       const response = await fetch(url, {
         method: 'POST',
