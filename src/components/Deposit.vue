@@ -29,7 +29,7 @@
 
 
       <!-- Wallet Connection Card -->
-      <div class="w-[90%] max-w-md border border-white/20 rounded-xl mb-4 p-6 cursor-pointer hover:border-white/40 transition-all duration-200"
+      <div class="w-full max-w-md border border-white/20 rounded-xl mb-4 p-6 cursor-pointer hover:border-white/40 transition-all duration-200"
            :class="{ 'ring-2 ring-white ring-offset-2 ring-offset-black': isConnectedStore }">
         <div class="flex items-center flex-col">
           <iconify-icon icon="mdi:wallet" class="text-5xl mb-4"></iconify-icon>
@@ -43,7 +43,7 @@
           <!-- Action Buttons -->
           <div class="w-full space-y-2">
             <!-- Connect Buttons - Only show when disconnected -->
-            <div v-if="!isConnectedStore" class="w-full grid grid-cols-2 gap-2">
+            <div v-if="!isConnectedStore" class="w-full space-y-2">
               <button @click="handleConnectWallet('browser')" 
                       :disabled="isConnectingBrowser || isConnectingWalletConnect"
                       class="w-full bg-white text-black font-medium p-3 rounded-xl hover:bg-white/90 active:bg-white/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
@@ -89,7 +89,7 @@
       </div>
 
       <!-- Combined Amount and Deposit Card -->
-      <div class="w-[90%] max-w-md border border-white/20 rounded-xl mb-4 p-6 cursor-pointer hover:border-white/40 transition-all duration-200"
+      <div class="w-full max-w-md border border-white/20 rounded-xl mb-4 p-6 cursor-pointer hover:border-white/40 transition-all duration-200"
            :class="[
              { 'opacity-50 pointer-events-none': !(isConnectedStore && isBaseNetworkStore) }
            ]">
