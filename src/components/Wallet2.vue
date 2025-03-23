@@ -311,10 +311,13 @@ onMounted(async () => {
       getBalance();
     }
   });
-
-  // Emit mounted event
-  const event = new Event('vue-mounted');
-  document.dispatchEvent(event);
+  
+  // remove loading container
+  let loadingContainer = document.getElementById('loading-container')
+  if (loadingContainer) {
+    loadingContainer.remove();
+  }
+  
 });
 
 // Add these helper functions at the top of your script section

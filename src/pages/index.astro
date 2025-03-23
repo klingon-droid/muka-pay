@@ -26,9 +26,16 @@ import Wallet2 from "../components/Wallet2.vue";
     // import VConsole from 'vconsole';
 
     // const vConsole = new VConsole();
+
+    const refreshButton = document.getElementById('refresh-button');
+    if (refreshButton) {
+      refreshButton.addEventListener('click', () => {
+        window.location.reload();
+      });
+    }
   </script>
 
-  <div id="loading-container" class="fixed inset-0 flex items-center justify-center bg-white z-50">
+  <div id="loading-container" class="fixed inset-0 flex items-center justify-center  z-[50] bg-white">
     <div class="flex flex-col items-center space-y-8">
 
 		<img src="/logo.png" alt="logo" class="w-[10rem] h-[10rem]">
@@ -37,30 +44,21 @@ import Wallet2 from "../components/Wallet2.vue";
 		<div class="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
 	  </div>
     </div>
+
+    <button id="refresh-button" class="fixed bottom-4 right-4 text-black text-lg z-[51]">
+
+      <iconify-icon icon="pixelarticons:loader" class="text-5xl" />
+      
+    </button>
+
+    
   </div>
 
-  <Wallet2 client:only="vue" id="wallet-component" />
+ 
 
-  <script>
-    // Function to hide loading screen
-    function hideLoadingScreen() {
-      const loadingContainer = document.getElementById('loading-container');
-      if (loadingContainer) {
-        loadingContainer.style.transition = 'opacity 0.3s ease-out';
-        loadingContainer.style.opacity = '0';
-        
-        setTimeout(() => {
-          loadingContainer.remove();
-        }, 300);
-      }
-    }
 
-    // Listen for the Vue component mounted event
-    document.addEventListener('vue-mounted', hideLoadingScreen);
+  <Wallet2 client:only="vue" />
 
-    // Fallback: hide loading screen after 5 seconds
-    setTimeout(hideLoadingScreen, 5000);
-  </script>
 </Layout>
 
 <style>
