@@ -7,9 +7,9 @@ import { pwaInfo } from 'virtual:pwa-info';
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" type="image/svg+xml" href="/pwa-192x192.png" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Face Recognition System</title>
+		<title>Snap Pay</title>
 		<script type="module" src="https://cdn.jsdelivr.net/npm/@vladmandic/human@3.2.0/dist/human.esm.min.js"></script>
 		<script src="/src/pwa.ts" type="module"></script>
 		{ pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} /> }

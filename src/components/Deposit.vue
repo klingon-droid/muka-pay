@@ -30,27 +30,58 @@
 
       <!-- Wallet Connection Card -->
       <div class="w-[90%] max-w-md border border-white/20 rounded-xl mb-4 p-6 cursor-pointer hover:border-white/40 transition-all duration-200"
-           :class="{ 'ring-2 ring-white ring-offset-2 ring-offset-black': isConnected }">
+           :class="{ 'ring-2 ring-white ring-offset-2 ring-offset-black': isConnectedStore }">
         <div class="flex items-center flex-col">
           <iconify-icon icon="mdi:wallet" class="text-5xl mb-4"></iconify-icon>
-          <p class="text-2xl font-doto mb-4">Connect Wallet</p>
+          <p class="text-2xl font-doto mb-4">Wallet Connection</p>
           
-          <div v-if="!isConnected" class="w-full bg-white/10 p-3 rounded-xl text-center text-white/50 mb-4">
-            Address: Not Connected
+          <!-- Address Display -->
+          <div v-if="isConnectedStore" class="w-full bg-white/10 p-3 rounded-xl text-center mb-4">
+            <p class="truncate text-green-500">{{ walletAddress }}</p>
           </div>
           
-          <div v-else class="w-full bg-white/10 p-3 rounded-xl text-center text-green-500 mb-4">
-            <p class="truncate">Connected: {{ walletAccount?.value?.address }}</p>
-          </div>
-          
+          <!-- Action Buttons -->
           <div class="w-full space-y-2">
-            <button v-if="!isConnected" @click="connectWallet" class="w-full bg-white text-black font-medium p-3 rounded-xl hover:bg-white/90 active:bg-white/80 transition-colors">
-              Connect
+            <!-- Connect Buttons - Only show when disconnected -->
+            <div v-if="!isConnectedStore" class="w-full grid grid-cols-2 gap-2">
+              <button @click="handleConnectWallet('browser')" 
+                      :disabled="isConnectingBrowser || isConnectingWalletConnect"
+                      class="w-full bg-white text-black font-medium p-3 rounded-xl hover:bg-white/90 active:bg-white/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                <template v-if="!isConnectingBrowser">
+                  <iconify-icon icon="mdi:web" class="text-xl"></iconify-icon>
+                  Injected
+                </template>
+                <template v-else>
+                  <iconify-icon class="text-2xl animate-spin" icon="pixelarticons:loader" />
+                  Connecting...
+                </template>
+              </button>
+
+              <button @click="handleConnectWallet('walletconnect')" 
+                      :disabled="isConnectingBrowser || isConnectingWalletConnect"
+                      class="w-full bg-white/10 border border-white/20 text-white font-medium p-3 rounded-xl hover:bg-white/20 active:bg-white/30 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                <template v-if="!isConnectingWalletConnect">
+                  <iconify-icon icon="simple-icons:walletconnect" class="text-xl"></iconify-icon>
+                  WalletConnect
+                </template>
+                <template v-else>
+                  <iconify-icon class="text-2xl animate-spin" icon="pixelarticons:loader" />
+                  Connecting...
+                </template>
+              </button>
+            </div>
+
+            <!-- Network Switch Button - Only show when connected but wrong network -->
+            <button v-if="isConnectedStore && !isBaseNetworkStore" 
+                    @click="switchToBase" 
+                    class="w-full bg-white text-black font-medium p-3 rounded-xl hover:bg-white/90 active:bg-white/80 transition-colors">
+              Switch to Base Network
             </button>
-            <button v-if="isConnected && !isBaseNetwork" @click="switchToBase" class="w-full bg-white text-black font-medium p-3 rounded-xl hover:bg-white/90 active:bg-white/80 transition-colors">
-              Switch to Base
-            </button>
-            <button v-if="isConnected && isBaseNetwork" @click="disconnectWallet" class="w-full bg-white/10 border border-red-500 text-red-500 font-medium p-3 rounded-xl hover:bg-red-500/20 active:bg-red-500/30 transition-colors">
+
+            <!-- Disconnect Button - Always show when connected -->
+            <button v-if="isConnectedStore" 
+                    @click="disconnectWallet" 
+                    class="w-full bg-white/10 border border-red-500 text-red-500 font-medium p-3 rounded-xl hover:bg-red-500/20 active:bg-red-500/30 transition-colors">
               Disconnect
             </button>
           </div>
@@ -60,11 +91,23 @@
       <!-- Combined Amount and Deposit Card -->
       <div class="w-[90%] max-w-md border border-white/20 rounded-xl mb-4 p-6 cursor-pointer hover:border-white/40 transition-all duration-200"
            :class="[
-             { 'opacity-50 pointer-events-none': !(isConnected && isBaseNetwork) }
+             { 'opacity-50 pointer-events-none': !(isConnectedStore && isBaseNetworkStore) }
            ]">
         <div class="flex items-center flex-col">
           <iconify-icon icon="mdi:bank-transfer" class="text-5xl mb-4"></iconify-icon>
           <p class="text-2xl font-doto mb-4">Deposit Base USDC</p>
+          
+          <!-- Balance Display -->
+          <div v-if="isConnectedStore" class="w-full flex justify-end items-center mb-4">
+            <div class="flex items-center gap-2 text-sm text-white/50">
+              <span>Balance: {{ usdcBalance }} USDC</span>
+              <button @click="refreshBalance"
+                      class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center"
+                      :disabled="isRefreshingBalance">
+                <iconify-icon :class="{ 'animate-spin': isRefreshingBalance }" icon="mdi:refresh" class="text-white text-xl" />
+              </button>
+            </div>
+          </div>
           
           <div class="w-full bg-white/10 p-3 rounded-xl flex items-center mb-4">
             <input 
@@ -79,21 +122,33 @@
           <div class="w-full grid grid-cols-1 gap-3">
             <button 
               @click="handleApproval" 
-              :disabled="isApprovalSufficient || !inputAmount" 
+              :disabled="isApprovalSufficient || !inputAmount || isApproving" 
               class="w-full bg-white text-black font-medium p-3 rounded-xl flex items-center justify-center gap-2 hover:bg-white/90 active:bg-white/80 transition-colors disabled:opacity-50"
               :class="{'bg-green-500 text-white': isApprovalSufficient}"
             >
-              <iconify-icon icon="mdi:check-circle" class="text-xl"></iconify-icon>
-              {{ isApprovalSufficient ? `Approved ${inputAmount} USDC` : `Approve ${inputAmount} USDC` }}
+              <template v-if="!isApproving">
+                <iconify-icon icon="mdi:check-circle" class="text-xl"></iconify-icon>
+                {{ isApprovalSufficient ? `Approved ${inputAmount} USDC` : `Approve ${inputAmount} USDC` }}
+              </template>
+              <template v-else>
+                <iconify-icon class="text-2xl animate-spin" icon="pixelarticons:loader" />
+                Approving...
+              </template>
             </button>
             
             <button 
               @click="handleDeposit" 
-              :disabled="!isApprovalSufficient || !inputAmount" 
+              :disabled="!isApprovalSufficient || !inputAmount || isDepositing" 
               class="w-full bg-white text-black font-medium p-3 rounded-xl flex items-center justify-center gap-2 hover:bg-white/90 active:bg-white/80 transition-colors disabled:opacity-50"
             >
-              <iconify-icon icon="mdi:bank-transfer" class="text-xl"></iconify-icon>
-              Deposit {{ inputAmount }} USDC
+              <template v-if="!isDepositing">
+                <iconify-icon icon="mdi:bank-transfer" class="text-xl"></iconify-icon>
+                Deposit {{ inputAmount }} USDC
+              </template>
+              <template v-else>
+                <iconify-icon class="text-2xl animate-spin" icon="pixelarticons:loader" />
+                Depositing...
+              </template>
             </button>
           </div>
         </div>
@@ -119,85 +174,141 @@
 </template>
 
 <script setup>
-    import { ref, onMounted, computed } from 'vue';
+    import { ref, onMounted, computed, watch } from 'vue';
+    import { useStore } from '@nanostores/vue'
+    import { 
+      isConnected, 
+      isConnecting, 
+      isSwitchingNetwork, 
+      walletAccount, 
+      connectWallet, 
+      disconnectWallet, 
+      switchToBase, 
+      isBaseNetwork,
+      initializeWallet,
+      isAutoConnecting
+    } from '../stores/wallet'
+    import { 
+      ERC20_ABI, 
+      VAULT_CONTRACT_ADDRESS, 
+      USDC_CONTRACT_ADDRESS, 
+      getUsernameHash, 
+      VAULT_ABI, 
+      username,
+      wagmiConfig 
+    } from '../stores/user'
+    import { getAccount, writeContract, waitForTransactionReceipt, readContract } from '@wagmi/core'
+    import { baseSepolia } from 'wagmi/chains'
+    import { formatUnits } from 'viem'
 
-    const isConnected = ref(false);
+    // Store values
+    const isConnectedStore = useStore(isConnected)
+    const isConnectingStore = useStore(isConnecting)
+    const isSwitchingNetworkStore = useStore(isSwitchingNetwork)
+    const walletAccountStore = useStore(walletAccount)
+    const isBaseNetworkStore = useStore(isBaseNetwork)
+    const isAutoConnectingStore = useStore(isAutoConnecting)
+
+    // Add individual loading states for each button
+    const isConnectingBrowser = ref(false)
+    const isConnectingWalletConnect = ref(false)
+
     const isAmountConfirmed = ref(false);
     const isApprovalSufficient = ref(false);
     const currentUsername = ref('');
     const inputAmount = ref(0);
+    const isApproving = ref(false);
+    const isDepositing = ref(false);
+    const usdcBalance = ref('0');
+    const isRefreshingBalance = ref(false);
 
-    import { wagmiConfig, walletAccount, ERC20_ABI, VAULT_CONTRACT_ADDRESS, USDC_CONTRACT_ADDRESS, getUsernameHash, VAULT_ABI, username } from '../stores/user'
-    import { useStore } from '@nanostores/vue'
-    import { getAccount, getConnectors, connect, disconnect, switchChain, reconnect, writeContract, waitForTransactionReceipt, readContract } from '@wagmi/core'
-    import { baseSepolia } from 'wagmi/chains'
-    import { formatUnits, parseUnits } from 'viem'
-
-
-    onMounted(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        currentUsername.value = urlParams.get('username') || username.value;
-        reconnect(wagmiConfig);
-
-        const account = getAccount(wagmiConfig)
-        if(account) {
-            console.log('account:', account)
-            walletAccount.set(account);
-            isConnected.value = account.isConnected;
-        }
-
+    // Add a computed property for the wallet address
+    const walletAddress = computed(() => {
+        return walletAccountStore?.value?.address || '';
     });
 
-    const connectWallet = async () => {
-        const _connectors = getConnectors(wagmiConfig)
-        await connect(wagmiConfig, { connector: _connectors[0] })
-        const account = getAccount(wagmiConfig)
-        if(account) {
-            console.log('account:', account)
-            walletAccount.set(account);
-            isConnected.value = account.isConnected;
+    const fetchUSDCBalance = async () => {
+        if (!walletAccountStore?.value?.address) return;
+        
+        isRefreshingBalance.value = true;
+        try {
+            const balance = await readContract(wagmiConfig, {
+                address: USDC_CONTRACT_ADDRESS,
+                abi: ERC20_ABI,
+                functionName: 'balanceOf',
+                args: [walletAccountStore.value.address]
+            });
+            console.log('Raw balance:', balance);
+            usdcBalance.value = Number(formatUnits(balance, 6)).toFixed(2);
+        } catch (error) {
+            console.error('Error fetching USDC balance:', error);
+            usdcBalance.value = '0';
+        } finally {
+            isRefreshingBalance.value = false;
         }
-    }
+    };
 
-    const disconnectWallet = () => {
-        disconnect(wagmiConfig)
-        isConnected.value = false;
-        walletAccount.set(null);
-    }
+    const refreshBalance = () => {
+        fetchUSDCBalance();
+    };
 
-    const switchToBase = () => {
-        switchChain(wagmiConfig, { chainId: baseSepolia.id })
-        const account = getAccount(wagmiConfig)
-        if(account) {
-            console.log('account:', account)
-            walletAccount.set(account);
-            isConnected.value = account.isConnected;
+    onMounted(async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        currentUsername.value = urlParams.get('username') || username.value;
+        
+        // Auto-connect wallet
+        await initializeWallet();
+    });
+
+    // Watch for wallet connection changes to update balance
+    watch([isConnectedStore, walletAccountStore], async ([newIsConnected, newAccount]) => {
+        console.log('Wallet state changed:', {
+            isConnected: newIsConnected,
+            account: newAccount
+        });
+        if (newIsConnected && newAccount?.address) {
+            await fetchUSDCBalance();
         }
-    }
-
-    const isBaseNetwork = computed(() => {
-        return walletAccount?.value?.chainId === baseSepolia.id;
-    })
+    });
 
     const confirmAmount = () => {
         isAmountConfirmed.value = true;
     }
 
     const checkApproval = async () => {
-        const allowance = await readContract(wagmiConfig, {
-            address: USDC_CONTRACT_ADDRESS,
-            abi: ERC20_ABI,
-            functionName: 'allowance',
-            args: [
-                walletAccount.value.address,
-                VAULT_CONTRACT_ADDRESS
-            ]
-        })
-        console.log('allowance:', allowance)
-        return Number(formatUnits(allowance, 6)) >= Number(inputAmount.value);
+        if (!walletAccountStore?.value?.address) {
+            console.error('No wallet address available');
+            return false;
+        }
+
+        try {
+            const allowance = await readContract(wagmiConfig, {
+                address: USDC_CONTRACT_ADDRESS,
+                abi: ERC20_ABI,
+                functionName: 'allowance',
+                args: [
+                    walletAccountStore.value.address,
+                    VAULT_CONTRACT_ADDRESS
+                ]
+            })
+            console.log('allowance:', allowance)
+            return Number(formatUnits(allowance, 6)) >= Number(inputAmount.value);
+        } catch (error) {
+            console.error('Error checking allowance:', error);
+            return false;
+        }
     }
 
     const handleApproval = async () => {
+        if (!walletAccountStore?.value?.address) {
+            alert('Please connect your wallet first');
+            return;
+        }
+
+        if (!inputAmount.value || inputAmount.value <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
 
         const allowed = await checkApproval();
         if(allowed) {
@@ -205,8 +316,8 @@
             return;
         }
 
+        isApproving.value = true;
         try {
-
             const tx = await writeContract(wagmiConfig, {
                 address: USDC_CONTRACT_ADDRESS,
                 abi: ERC20_ABI,
@@ -227,11 +338,28 @@
         } catch (error) {
             console.error('Error approving:', error)
             alert(`Please approve the deposit first to proceed.`)
+        } finally {
+            isApproving.value = false;
         }
     }
 
     const handleDeposit = async () => {
-        
+        if (!walletAccountStore?.value?.address) {
+            alert('Please connect your wallet first');
+            return;
+        }
+
+        if (!inputAmount.value || inputAmount.value <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
+
+        if (!isApprovalSufficient.value) {
+            alert('Please approve the USDC amount first');
+            return;
+        }
+
+        isDepositing.value = true;
         try {
             const usernameHash = await getUsernameHash(currentUsername.value);
             console.log('usernameHash:', usernameHash)
@@ -252,24 +380,42 @@
 
             console.log('receipt:', receipt)
 
-
-            // isDepositSufficient.value = receipt.status === 'success';
-
             isAmountConfirmed.value = false;
             isApprovalSufficient.value = false;
             inputAmount.value = 0;
+            await fetchUSDCBalance(); // Refresh balance after successful deposit
             alert('Deposit successful');
 
         } catch (error) {
             console.error('Error depositing:', error)
+            alert('Failed to deposit. Please try again.');
+        } finally {
+            isDepositing.value = false;
         }
     }
-
 
     const copyLink = () => {
         const link = `${window.location.origin}?username=${currentUsername.value}`;
         navigator.clipboard.writeText(link);
         alert('Link copied to clipboard');
+    }
+
+    // Update the connectWallet function to handle individual loading states
+    const handleConnectWallet = async (type) => {
+        if (type === 'browser') {
+            isConnectingBrowser.value = true
+        } else {
+            isConnectingWalletConnect.value = true
+        }
+        try {
+            await connectWallet(type)
+        } finally {
+            if (type === 'browser') {
+                isConnectingBrowser.value = false
+            } else {
+                isConnectingWalletConnect.value = false
+            }
+        }
     }
 </script>
 

@@ -83,18 +83,38 @@ export async function generateProof(_username, _password, _nonce = Date.now()) {
 
 import { createConfig, http } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
-import { injected } from 'wagmi/connectors'
+import { injected, walletConnect } from 'wagmi/connectors'
 
 export const walletAccount = atom(null)
 
 export const wagmiConfig = createConfig({
   chains: [baseSepolia],
+  connectors: [
+    injected(),
+    walletConnect({
+      projectId: '1c8fb9d82e157d955cb7a335201c0a8e',
+      showQrModal: true,
+      metadata: {
+        name: 'snappay',
+        description: 'AppKit Example',
+        url: 'https://reown.com/appkit',
+        icons: ['https://assets.reown.com/reown-profile-pic.png']
+      },
+      qrModalOptions: {
+        themeMode: 'dark',
+        themeVariables: {
+          '--wcm-z-index': 99999
+        },
+        containerElements: {
+          w3mModal: document.body,
+          w3mOverlay: document.body
+        }
+      }
+    })
+  ],
   transports: {
     [baseSepolia.id]: http()
-  },
-  connectors: [
-    injected()
-  ]
+  }
 })
 
 
@@ -104,6 +124,25 @@ export const USDC_CONTRACT_ADDRESS = "0x0a6CC1B2cB197AA6a6878fee28Fd1c908B603ad4
 
 
 export const ERC20_ABI = [
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "name": "_owner",
+                "type": "address"
+            }
+        ],
+        "name": "balanceOf",
+        "outputs": [
+            {
+                "name": "balance",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
     {
         "constant": false,
         "inputs": [
