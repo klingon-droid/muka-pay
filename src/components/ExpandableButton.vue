@@ -6,7 +6,7 @@
       </div>
     </div>
 
-    <div class="w-screen h-[100dvh] flex justify-center items-center fixed top-0 left-0 pointer-events-none">
+    <div class="w-screen h-[95dvh] flex justify-center items-center fixed top-0 left-0 pointer-events-none">
       <div ref="expander" class="absolute bg-white h-[1px] w-[1px]" :style="expanderStyle"></div>
     </div>
 
