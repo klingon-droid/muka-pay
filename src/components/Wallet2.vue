@@ -112,13 +112,13 @@
           </template>
         </ExpandableButton>
 
-        <ExpandableButton :button-id="'faucet'">
+        <!-- <ExpandableButton :button-id="'faucet'">
           <template #button_text>Faucet</template>
 
           <template #content>
             <Faucet />
           </template>
-        </ExpandableButton>
+        </ExpandableButton> -->
 
         <!-- <button @click="isSendDialogOpen = true" class="bg-black text-white font-bold text-xl p-4 py-6 rounded-full w-full">Send</button>
         <button @click="gotoReceive()" class="bg-black text-white font-bold text-xl p-4 py-6 rounded-full w-full">Receive</button>
