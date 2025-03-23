@@ -112,6 +112,14 @@
           </template>
         </ExpandableButton>
 
+        <ExpandableButton :button-id="'faucet'">
+          <template #button_text>Faucet</template>
+
+          <template #content>
+            <Faucet />
+          </template>
+        </ExpandableButton>
+
         <!-- <button @click="isSendDialogOpen = true" class="bg-black text-white font-bold text-xl p-4 py-6 rounded-full w-full">Send</button>
         <button @click="gotoReceive()" class="bg-black text-white font-bold text-xl p-4 py-6 rounded-full w-full">Receive</button>
         <button @click="gotoDeposit()" class="bg-black text-white font-bold text-xl p-4 py-6 rounded-full w-full">Deposit</button>
@@ -228,6 +236,7 @@ import PatternPad2 from "./PatternPad2.vue";
 import { setUsername, refreshBalance, wagmiConfig, walletAccount } from "../stores/user";
 import HistoryDialog from "./HistoryDialog.vue";
 import SendDialog from "./SendDialog.vue";
+import Faucet from "./Faucet.vue";
 import { useStore } from "@nanostores/vue";
 import ExpandableButton from "./ExpandableButton.vue";
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
@@ -646,6 +655,14 @@ const handleReceiveClose = () => {
         receiveRef.value.closeReceive();
     }
     tapToRefreshBalance('spinner');
+}
+
+const handleFaucet = () => {
+
+
+  console.log('handleFaucet handleFaucet handleFaucet')
+
+
 }
 
 </script>
