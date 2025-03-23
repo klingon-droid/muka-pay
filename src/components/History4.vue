@@ -54,8 +54,8 @@
     import { useStore } from '@nanostores/vue';
 
     onMounted(async () => {
-        // currentUsername.value = username.value;
-        currentUsername.value = 'famcafe';
+        currentUsername.value = username.value;
+        // currentUsername.value = 'famcafe';
         console.log(currentUsername.value, await getUsernameHash(currentUsername.value))
         fetchHistory();
     })
