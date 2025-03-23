@@ -1,36 +1,21 @@
 <template>
   <div :class="[isLocked ? (isFreshLogin ? 'bg-white' : 'p-2') : 'grid grid-cols-1 grid-rows-[auto_1fr_auto]']" class="w-full h-screen font-lexend">
-    <template v-if="isLocked">
+    <!-- Error State -->
+    <div v-if="hasError" class="w-full h-full flex flex-col items-center justify-center p-4">
+      <div class="text-center space-y-4">
+        <p class="text-2xl font-doto text-red-500">Oops!</p>
+        <p class="text-gray-600">{{ errorMessage }}</p>
+        <button @click="window.location.reload()" class="bg-black text-white font-bold text-lg px-6 py-4 rounded-full">
+          Try Again
+        </button>
+      </div>
+    </div>
 
-      <template v-if="isFreshLogin">
-
-
-        <Gate2 @login-success="handleLoginSuccess" @register-success="handleRegisterSuccess" />
-
-      </template>
-
-      <template v-else>
-        <div class="bg-black w-full h-[95vh] rounded-xl">
-          <div class="w-full h-full flex justify-center items-center p-8 flex-col">
-            <div class="w-full text-center space-y-2">
-              <p class="text-2xl font-doto text-white">Account Locked</p>
-    
-              <div class="text-center">
-                <p class="text-sm text-gray-400">You data is encrypted and only accessible with your secret pattern</p>
-              </div>
-            </div>
-    
-            <div class="w-full flex justify-center items-center grow flex-col">
-              <PatternPad2 ref="patternPadRef" color="white" @pattern-complete="handlePatternComplete" />
-            </div>
-    
-            <div>
-              <button @click="deleteLocalStorage()" class="bg-white text-black font-bold text-lg px-6 py-4 rounded-full w-full">Reset Account</button>
-            </div>
-          </div>
-        </div>
-    </template>
-    </template>
+    <!-- Loading State -->
+    <div v-else-if="isLoading" class="w-full h-full flex flex-col items-center justify-center">
+      <div class="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+      <p class="mt-4 text-gray-600">Loading...</p>
+    </div>
 
     <template v-else>
       <div class="w-full grid grid-cols-[1fr_4fr_1fr] justify-center items-center p-4">
@@ -275,6 +260,9 @@ const patternPadRef = ref(null);
 const deferredPrompt = ref(null);
 const isIOS = ref(false);
 const showInstallPrompt = ref(false);
+const hasError = ref(false);
+const errorMessage = ref('');
+const initializationTimeout = ref(null);
 
 const refreshBalanceStore = useStore(refreshBalance);
 
@@ -365,61 +353,94 @@ const isBaseNetwork = computed(() => {
 })
 
 onMounted(async () => {
-
   try {
+    // Set a timeout to prevent infinite loading
+    initializationTimeout.value = setTimeout(() => {
+      if (isLoading.value) {
+        hasError.value = true;
+        errorMessage.value = 'Initialization timed out. Please try refreshing.';
+        isLoading.value = false;
+        console.error('Initialization timeout');
+      }
+    }, 10000); // 10 second timeout
+
     // remove loading container
     let loadingContainer = document.getElementById('loading-container')
     if (loadingContainer) {
       loadingContainer.remove();
     }
-  } catch (error) {
-    console.error('Error removing loading container:', error);
-  }
 
-  /// get face embedding from local storage
-  const faceEmbedding = localStorage.getItem("mukapay-face");
-  if (faceEmbedding) {
-    isFreshLogin.value = false;
-    matchedEmbedding.value = JSON.parse(faceEmbedding);
-  } else {
-    isFreshLogin.value = true;
-  }
-
-  // Watch the store value
-  watch(refreshBalanceStore, (newValue) => {
-    console.log("refreshBalance changed to:", newValue);
-    console.log('refreshBalanceStore getBalance')
-    if (currentUsername.value) {
-      getBalance();
+    // get face embedding from local storage
+    const faceEmbedding = localStorage.getItem("mukapay-face");
+    if (faceEmbedding) {
+      try {
+        isFreshLogin.value = false;
+        matchedEmbedding.value = JSON.parse(faceEmbedding);
+      } catch (parseError) {
+        console.error('Error parsing face embedding:', parseError);
+        localStorage.removeItem('mukapay-face');
+        isFreshLogin.value = true;
+      }
+    } else {
+      isFreshLogin.value = true;
     }
-  });
-  
-  // Add wallet connection listener
-  window.addEventListener('connect-wallet', connectWallet);
-  window.addEventListener('disconnect-wallet', disconnectWallet);
-  window.addEventListener('switch-to-base', switchToBase);
 
-  // Reconnect wallet if previously connected
-  reconnect(wagmiConfig);
-  const account = getAccount(wagmiConfig)
-  if(account) {
-    console.log('account:', account)
-    walletAccount.set(account);
-    isConnected.value = account.isConnected;
+    // Watch the store value
+    watch(refreshBalanceStore, (newValue) => {
+      console.log("refreshBalance changed to:", newValue);
+      console.log('refreshBalanceStore getBalance')
+      if (currentUsername.value) {
+        getBalance();
+      }
+    });
+    
+    // Add wallet connection listener
+    window.addEventListener('connect-wallet', connectWallet);
+    window.addEventListener('disconnect-wallet', disconnectWallet);
+    window.addEventListener('switch-to-base', switchToBase);
+
+    // Reconnect wallet if previously connected
+    try {
+      await reconnect(wagmiConfig);
+      const account = getAccount(wagmiConfig)
+      if(account) {
+        console.log('account:', account)
+        walletAccount.set(account);
+        isConnected.value = account.isConnected;
+      }
+    } catch (walletError) {
+      console.error('Error reconnecting wallet:', walletError);
+      // Don't throw here, just log the error
+    }
+
+    checkIOS();
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Clear loading state if everything is successful
+    isLoading.value = false;
+  } catch (error) {
+    console.error('Error in onMounted:', error);
+    hasError.value = true;
+    errorMessage.value = 'Failed to initialize. Please try refreshing.';
+    isLoading.value = false;
+  } finally {
+    if (initializationTimeout.value) {
+      clearTimeout(initializationTimeout.value);
+    }
   }
-
-  checkIOS();
-  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  window.addEventListener('appinstalled', handleAppInstalled);
 });
 
-// Clean up event listeners
+// Clean up event listeners and timeouts
 onUnmounted(() => {
     window.removeEventListener('connect-wallet', connectWallet);
     window.removeEventListener('disconnect-wallet', disconnectWallet);
     window.removeEventListener('switch-to-base', switchToBase);
     window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.removeEventListener('appinstalled', handleAppInstalled);
+    if (initializationTimeout.value) {
+      clearTimeout(initializationTimeout.value);
+    }
 });
 
 // Add these helper functions at the top of your script section
