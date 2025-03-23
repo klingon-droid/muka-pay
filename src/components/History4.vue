@@ -6,9 +6,13 @@
     </nav>
 
     <div class="w-full divide-y divide-white/20">
+        <!-- Loading state -->
+        <div v-if="isLoading" class="flex justify-center items-center p-8">
+            <iconify-icon icon="pixelarticons:loader" class="text-5xl text-white/30 animate-spin"></iconify-icon>
+        </div>
 
-        <!-- row of transaction -->
-        <div v-for="transaction in transactions" :key="transaction.id" 
+        <!-- Transactions list -->
+        <div v-else v-for="transaction in transactions" :key="transaction.id" 
              class="p-4 hover:bg-gray-800 transition duration-150 cursor-pointer">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -71,47 +75,56 @@
         fetchHistory();
     })
 
+    const isLoading = ref(true);
+
     const fetchHistory = async () => {
-        const response = await fetch(`/api/history/${currentUsername.value}`);
-        const data = await response.json();
-        console.log('history data:', data);
-        const userHash = await getUsernameHash(currentUsername.value);
+        isLoading.value = true;
+        try {
+            const response = await fetch(`/api/history/${currentUsername.value}`);
+            const data = await response.json();
+            console.log('history data:', data);
+            const userHash = await getUsernameHash(currentUsername.value);
 
-        const outTypes = ['paid', 'withdrawn']
-        const inTypes = ['deposited']
+            const outTypes = ['paid', 'withdrawn']
+            const inTypes = ['deposited']
 
+            transactions.value = [];
+            for(let history of data?.history) {
+                if(history.event === 'registered') {
+                    continue;
+                }
 
-        transactions.value = [];
-        for(let history of data?.history) {
-            if(history.event === 'registered') {
-                continue;
+                let _type = outTypes.includes(history.event) ? 'send' : 'receive';
+                if(history.event === 'deposited') {
+                    _type = 'receive';
+                } else {
+                    _type = userHash === history?.to_user ? 'receive' : 'send';
+                }
+                
+                
+                transactions.value.push({
+                    id: history.tx_hash,
+                    tx_hash: history.tx_hash,
+                    event: history.event,
+                    // type: outTypes.includes(history.event) ? 'send' : 'receive',
+                    type: _type,
+                    from_user: history?.from_user,
+                    to_user: history?.to_user,
+                    counterparty: userHash === history?.to_user ? history?.from_user : history?.to_user,
+                    amount: formatUnits(String(history.amount), 6),
+                    date: history.block_time,
+                    raw: history,
+                });
             }
-
-            let _type = outTypes.includes(history.event) ? 'send' : 'receive';
-            if(history.event === 'deposited') {
-                _type = 'receive';
-            } else {
-                _type = userHash === history?.to_user ? 'receive' : 'send';
-            }
-            
-            
-            transactions.value.push({
-                id: history.tx_hash,
-                tx_hash: history.tx_hash,
-                event: history.event,
-                // type: outTypes.includes(history.event) ? 'send' : 'receive',
-                type: _type,
-                from_user: history?.from_user,
-                to_user: history?.to_user,
-                counterparty: userHash === history?.to_user ? history?.from_user : history?.to_user,
-                amount: formatUnits(String(history.amount), 6),
-                date: history.block_time,
-                raw: history,
-            });
+        } catch (error) {
+            console.error('Error fetching history:', error);
+        } finally {
+            // Add a small delay for smoother loading state
+            setTimeout(() => {
+                isLoading.value = false;
+            }, 500);
         }
-
     }
-
 
     const transactions = ref([]);
     // const transactions = ref([
