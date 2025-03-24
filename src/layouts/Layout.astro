@@ -17,6 +17,15 @@ import { pwaInfo } from 'virtual:pwa-info';
 	<body>
 		<script>
 			import 'iconify-icon';
+
+			import posthog from 'posthog-js'
+
+			posthog.init('phc_CYDM8I85e5ofdR4CsprpDCBL0EcihdhB18LYNamdDN0',
+				{
+					api_host: 'https://us.i.posthog.com',
+					person_profiles: 'identified_only' // or 'always' to create profiles for anonymous users as well
+				}
+			)
 		</script>
 		<slot />
 	</body>
