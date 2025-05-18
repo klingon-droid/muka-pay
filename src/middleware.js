@@ -41,11 +41,13 @@
 //   return 'application/octet-stream';
 // }
 
-// If you need a middleware, ensure it's compatible with Astro's Cloudflare adapter.
-// For now, we'll let the adapter handle everything.
-export async function onRequest({ request }, next) {
-  // console.log(`[MINIMAL-MIDDLEWARE] Request for: ${request.url}`);
-  return next();
+// If you need a middleware, ensure it's compatible with the Vercel adapter.
+// For now, we'll let the adapter handle everything or use a minimal setup.
+export async function onRequest(context, next) {
+  // Minimal middleware: just proceed to the next handler.
+  // You can add Astro locals or other Vercel-specific logic here if needed in the future.
+  const response = await next();
+  return response;
 }
 
 // All other logging and functions should be removed or commented out. 

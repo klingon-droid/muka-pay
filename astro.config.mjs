@@ -4,7 +4,8 @@ import { defineConfig } from 'astro/config';
 import vue from '@astrojs/vue';
 import tailwindcss from '@tailwindcss/vite';
 
-import cloudflare from '@astrojs/cloudflare';
+// import cloudflare from '@astrojs/cloudflare'; // Remove Cloudflare adapter
+import vercel from '@astrojs/vercel/serverless'; // Import Vercel serverless adapter
 import AstroPWA from '@vite-pwa/astro'
 
 // https://astro.build/config
@@ -78,7 +79,7 @@ export default defineConfig({
     })
   ],
 
-  output: 'server',
+  output: 'server', // Vercel serverless adapter also uses 'server' output
 
   vite: {
     plugins: [tailwindcss()],
@@ -87,5 +88,5 @@ export default defineConfig({
     },
   },
 
-  adapter: cloudflare()
+  adapter: vercel() // Use Vercel adapter
 });
