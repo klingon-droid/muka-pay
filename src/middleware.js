@@ -1,25 +1,31 @@
+const staticAssets = import.meta.glob('../dist/**/*', { as: 'raw' });
+
 export async function onRequest({ request }, next) {
   const url = new URL(request.url);
 
-  // Serve static assets from /public
+  // Only handle static assets (/_astro, /public, etc.)
   if (
+    url.pathname.startsWith('/_astro/') ||
     url.pathname.startsWith('/logo.png') ||
     url.pathname.startsWith('/pwa-192x192.png') ||
     url.pathname.startsWith('/pwa-512x512.png') ||
     url.pathname.startsWith('/favicon.svg') ||
-    url.pathname.startsWith('/manifest.json')
+    url.pathname.startsWith('/manifest.json') ||
+    url.pathname.startsWith('/manifest.webmanifest') ||
+    url.pathname.startsWith('/app.') || // for CSS/JS chunks
+    url.pathname.startsWith('/workbox-') || // for workbox files
+    url.pathname.startsWith('/sw.js')
   ) {
-    // Try to fetch the asset from the deployed worker's public folder
-    // The asset will be available at ./public/<filename> in the worker bundle
-    const assetPath = './public' + url.pathname;
-    try {
-      const mod = await import(assetPath);
-      return new Response(mod.default, {
+    // Map URL path to file path in dist output
+    let assetPath = '../dist' + url.pathname;
+    const mod = staticAssets[assetPath];
+    if (mod) {
+      const content = await mod();
+      return new Response(content, {
         headers: { 'content-type': getContentType(url.pathname) }
       });
-    } catch (e) {
-      // Not found, continue to SSR
     }
+    // Not found, continue to SSR
   }
 
   // Fallback to SSR
@@ -29,6 +35,8 @@ export async function onRequest({ request }, next) {
 function getContentType(path) {
   if (path.endsWith('.png')) return 'image/png';
   if (path.endsWith('.svg')) return 'image/svg+xml';
-  if (path.endsWith('.json')) return 'application/json';
+  if (path.endsWith('.json') || path.endsWith('.webmanifest')) return 'application/json';
+  if (path.endsWith('.js')) return 'application/javascript';
+  if (path.endsWith('.css')) return 'text/css';
   return 'application/octet-stream';
 } 
