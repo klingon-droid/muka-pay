@@ -11,7 +11,6 @@ import { pwaInfo } from 'virtual:pwa-info';
 		<meta name="generator" content={Astro.generator} />
 		<title>Snap Pay</title>
 		<script type="module" src="https://cdn.jsdelivr.net/npm/@vladmandic/human@3.2.0/dist/human.esm.min.js"></script>
-		<script src="/src/pwa.ts" type="module"></script>
 		{ pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} /> }
 	</head>
 	<body>
