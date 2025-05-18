@@ -6,8 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "wrangler pages dev ./dist --ip 0.0.0.0",
-    "astro": "astro",
-    "postbuild": "cpx \"public/**/*\" dist/_worker.js/public"
+    "astro": "astro"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.3.0",
